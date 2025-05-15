@@ -2,9 +2,10 @@ import { useState } from "react";
 import { generatePitchDeck } from "../lib/gemini";
 import { useNavigate } from "react-router-dom";
 
-export default function IdeaInputPage() {
+export default function MainPage() {
   const [idea, setIdea] = useState("");
   const navigate = useNavigate();
+
   const handleGenerate = async () => {
     if (!idea.trim()) return alert("Please enter your idea");
   
@@ -12,7 +13,7 @@ export default function IdeaInputPage() {
       const pitchData = await generatePitchDeck(idea);
       console.log("Generated pitch deck:", pitchData);
       navigate("/results", { state: { pitchData } });  
-      // TODO: save to context or navigate to /edit page with pitchData
+
     } catch (err) {
       console.error("Gemini error:", err);
       alert("Something went wrong. Try again.");
@@ -30,7 +31,7 @@ export default function IdeaInputPage() {
           rows={6}
           value={idea}
           onChange={(e) => setIdea(e.target.value)}
-          placeholder="E.g. An AI tool that helps students instantly generate project proposals..."
+          placeholder="Describe your idea here..."
         ></textarea>
         <button
           onClick={handleGenerate}

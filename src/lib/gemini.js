@@ -7,7 +7,7 @@ export const generatePitchDeck = async (rawIdea) => {
 
   const prompt = `You are a startup pitch deck generator. 
 
-Based on the raw idea below, generate a full pitch deck with 8-12 slides depending on the logical flow and complexity of the idea. Only include slides that add value — don’t force the number. 
+Based on the raw idea below, generate a full pitch deck with 8-12 slides depending on the logical flow and complexity of the idea. Only include slides that add value — dont force the number. 
 
 ### Input Idea: "${rawIdea}"
 
@@ -25,7 +25,7 @@ Based on the raw idea below, generate a full pitch deck with 8-12 slides dependi
   ]
 }
 
-Ensure the slide flow follows a logical startup pitch sequence (Problem, Solution, Market, Product, Tech, Business Model, Team, Ask, etc.) but feel free to tailor it to the specific idea.
+Ensure the slide flow follows a logical startup pitch sequence (Problem, Solution, Market, Product, Tech, Team, etc.) but feel free to tailor it to the specific idea.
 
 `;
 
