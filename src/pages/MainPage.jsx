@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { generatePitchDeck } from "../lib/gemini";
 import { useNavigate } from "react-router-dom";
+import { v4 as uuidv4 } from "uuid";
 
 export default function MainPage() {
   const [idea, setIdea] = useState("");
@@ -8,12 +9,13 @@ export default function MainPage() {
 
   const handleGenerate = async () => {
     if (!idea.trim()) return alert("Please enter your idea");
-  
+
     try {
       const pitchData = await generatePitchDeck(idea);
-      console.log("Generated pitch deck:", pitchData);
-      navigate("/results", { state: { pitchData } });  
-
+      const id = uuidv4();
+      console.log("Generated pitch ID:", id);
+      localStorage.setItem(`pitch_${id}`, JSON.stringify(pitchData));
+      navigate(`/pitch-decks/${id}`);
     } catch (err) {
       console.error("Gemini error:", err);
       alert("Something went wrong. Try again.");
@@ -21,24 +23,16 @@ export default function MainPage() {
   };
 
   return (
-    <div>
-      <div>
-        <h1>Enter Your Idea</h1>
-        <p>
-          Describe your idea in a few sentences. We'll generate a pitch deck structure and script.
-        </p>
-        <textarea
-          rows={6}
-          value={idea}
-          onChange={(e) => setIdea(e.target.value)}
-          placeholder="Describe your idea here..."
-        ></textarea>
-        <button
-          onClick={handleGenerate}
-        >
-          Generate Pitch
-        </button>
-      </div>
+    <div style={{ padding: "2rem" }}>
+      <h1>Enter Your Idea</h1>
+      <textarea
+        rows={6}
+        value={idea}
+        onChange={(e) => setIdea(e.target.value)}
+        placeholder="Describe your idea here..."
+        style={{ width: "100%", marginBottom: "1rem" }}
+      />
+      <button onClick={handleGenerate}>Generate Pitch</button>
     </div>
   );
 }

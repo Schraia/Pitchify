@@ -9,7 +9,7 @@ const NavbarLayout = () => {
         </h1>
         <div>
           <Link to="/main">Idea Input</Link>
-          <Link to="/results">Results</Link>
+          <Link to="/decks">Results</Link>
         </div>
       </nav>
 
