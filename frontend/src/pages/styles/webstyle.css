@@ -1,0 +1,21 @@
+.landContainer{
+    background: radial-gradient(center,100%,#6fffe9,#eaeaeacf);
+}
+
+.go-button{
+    padding: 10px;
+    background-color: aquamarine;
+    height: 50px;
+    width: 160px;
+}
+
+.titleText{
+    font-size: 80px;
+    margin-bottom: 0;
+}
+
+.titleContainer{
+    margin-top: 20%;
+    align-self: center;
+    justify-items: center;
+}
