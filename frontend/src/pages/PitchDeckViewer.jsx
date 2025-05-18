@@ -15,6 +15,7 @@ const PitchDeckViewer = () => {
   const [selectedTextboxId, setSelectedTextboxId] = useState(null);
   const [selectedTheme, setSelectedTheme] = useState("default");
   const canvasRef = useRef(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const themes = {
     default: {
@@ -48,7 +49,7 @@ const PitchDeckViewer = () => {
       borderColor: "#81c784",
     },
   };
-  
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -58,17 +59,38 @@ const PitchDeckViewer = () => {
         setSelectedTextboxId(null);
       }
     };
-  
+
     document.addEventListener("mousedown", handleClickOutside);
-  
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
   useEffect(() => {
-    axios.get(`http://127.0.0.1:3000/api/pitch-decks/${id}`)
-      .then(res => setDeck(res.data))
+    if (!deck) return;
+    const saveData = {
+      deckId: id,
+      theme: selectedTheme,
+      textboxes: dragtextbox,
+      currentSlide,
+    };
+    localStorage.setItem(`pitch-deck-${id}`, JSON.stringify(saveData));
+  }, [selectedTheme, dragtextbox, currentSlide]);
+  
+  useEffect(() => {
+    axios
+      .get(`http://127.0.0.1:3000/api/pitch-decks/${id}`)
+      .then((res) => {
+        const savedData = localStorage.getItem(`pitch-deck-${id}`);
+        if (savedData) {
+          const parsed = JSON.parse(savedData);
+          setSelectedTheme(parsed.theme || "default");
+          setdragTextbox(parsed.textboxes || {});
+          setCurrentSlide(parsed.currentSlide || 0);
+        }
+        setDeck(res.data);
+      })
       .catch(() => {
         alert("Pitch deck not found.");
         navigate("/decks");
@@ -118,6 +140,24 @@ const PitchDeckViewer = () => {
   const { pitchTitle, slides = [] } = deck;
   const allSlides = [{ title: pitchTitle, content: "", presenterNotes: "" }, ...slides];
   const slide = allSlides[currentSlide];
+
+  const handleSave = () => {
+    setIsSaving(true);
+
+    const saveData = {
+      deckId: id,
+      theme: selectedTheme,
+      textboxes: dragtextbox,
+      currentSlide,
+    };
+
+    localStorage.setItem(`pitch-deck-${id}`, JSON.stringify(saveData));
+
+    setTimeout(() => {
+      setIsSaving(false);
+      alert("Your changes has been saved.");
+    }, 500);
+  };
 
   return (
     <div className="results-container">
@@ -184,7 +224,7 @@ const PitchDeckViewer = () => {
                     const updated = prev[`slide-${currentSlide}`].filter((b) => b.id !== box.id);
                     return { ...prev, [`slide-${currentSlide}`]: updated };
                   });
-                  setSelectedTextboxId(null); 
+                  setSelectedTextboxId(null);
                 }}
               >
                 ❌
@@ -247,6 +287,9 @@ const PitchDeckViewer = () => {
             {showNotes ? "Hide" : "Show"} Presenter Notes
           </button>
         )}
+        <button onClick={handleSave} disabled={isSaving}>
+          {isSaving ? "Saving..." : "💾 Save"}
+        </button>
       </div>
 
       {showNotes && slide.presenterNotes && (
