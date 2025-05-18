@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import "./styles/PitchDeckViewer.css";
+import { nanoid } from "nanoid";
 
 const PitchDeckViewer = () => {
   const { id } = useParams();
@@ -10,6 +11,7 @@ const PitchDeckViewer = () => {
   const [deck, setDeck] = useState(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [textBoxes, setTextBoxes] = useState([]);
+  const [dragtextbox, setdragTextbox] = useState({});
 
   useEffect(() => {
     axios.get(`http://127.0.0.1:3000/api/pitch-decks/${id}`)
@@ -19,6 +21,43 @@ const PitchDeckViewer = () => {
         navigate("/decks");
       });
   }, [id, navigate]);
+
+  useEffect(() => {
+    if (!deck) return;
+
+    const currentSlideKey = `slide-${currentSlide}`;
+
+    if (!dragtextbox[currentSlideKey]) {
+      const contentBox = allSlides[currentSlide]?.content
+        ? [{
+          id: nanoid(),
+          x: 100,
+          y: 100,
+          text: allSlides[currentSlide].content,
+          width: 300,
+          height: 100,
+        }]
+        : [];
+
+      const titleBox = allSlides[currentSlide]?.title
+        ? [{
+          id: nanoid(),
+          x: 50,
+          y: 30,
+          text: allSlides[currentSlide].title,
+          width: 300,
+          height: 60,
+        }]
+        : [];
+
+      const newBoxes = [...titleBox, ...contentBox];
+
+      setdragTextbox(prev => ({
+        ...prev,
+        [currentSlideKey]: newBoxes
+      }));
+    }
+  }, [deck, currentSlide]);
 
   const handleAddTextBox = () => {
     const newTextBox = {
@@ -46,17 +85,8 @@ const PitchDeckViewer = () => {
 
   return (
     <div className="results-container">
-      <div className="slide-canvas" style={{ position: "relative", height: "500px", border: "1px solid #ccc" }}>
-        <h2 className="slide-title">{slide.title}</h2>
-        {slide.content && (
-          <p className="slide-content">
-            {typeof slide.content === "string"
-              ? slide.content.replace(/\*+/g, "").trim()
-              : ""}
-          </p>
-        )}
-
-        {textBoxes.map((box) => (
+      <div className="slide-canvas">
+        {dragtextbox[`slide-${currentSlide}`]?.map((box) => (
           <Rnd
             key={box.id}
             default={{
@@ -67,11 +97,41 @@ const PitchDeckViewer = () => {
             }}
             bounds="parent"
             className="rnd-textbox"
+            onDragStop={(e, d) => {
+              setdragTextbox((prev) => {
+                const updated = prev[`slide-${currentSlide}`].map((b) =>
+                  b.id === box.id ? { ...b, x: d.x, y: d.y } : b
+                );
+                return { ...prev, [`slide-${currentSlide}`]: updated };
+              });
+            }}
+            onResizeStop={(e, direction, ref, delta, position) => {
+              setdragTextbox((prev) => {
+                const updated = prev[`slide-${currentSlide}`].map((b) =>
+                  b.id === box.id
+                    ? {
+                      ...b,
+                      width: ref.offsetWidth,
+                      height: ref.offsetHeight,
+                      ...position,
+                    }
+                    : b
+                );
+                return { ...prev, [`slide-${currentSlide}`]: updated };
+              });
+            }}
           >
             <textarea
               className="rnd-textarea"
               value={box.text}
-              onChange={(e) => updateText(box.id, e.target.value)}
+              onChange={(e) => {
+                setdragTextbox((prev) => {
+                  const updated = prev[`slide-${currentSlide}`].map((b) =>
+                    b.id === box.id ? { ...b, text: e.target.value } : b
+                  );
+                  return { ...prev, [`slide-${currentSlide}`]: updated };
+                });
+              }}
             />
           </Rnd>
         ))}
