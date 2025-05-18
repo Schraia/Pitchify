@@ -1,21 +1,51 @@
 .landContainer{
-    background: radial-gradient(center,100%,#6fffe9,#eaeaeacf);
-}
-
-.go-button{
-    padding: 10px;
-    background-color: aquamarine;
-    height: 50px;
-    width: 160px;
+    background: radial-gradient(#6fffe9,#eaeaeacf);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
 }
 
 .titleText{
     font-size: 80px;
-    margin-bottom: 0;
+    margin-bottom: -10px;
 }
 
 .titleContainer{
-    margin-top: 20%;
+    margin-top: 18%;
     align-self: center;
     justify-items: center;
+    text-align: center;
 }
+
+.btnContainer{
+    margin-top: 40px;
+}
+
+.blackBtn{
+    color: #6fffe9;
+    background-color: black;
+    height: 60px;
+    width: 140px;
+    border-radius: 25px;
+    font-size: x-large;
+}
+
+.pinkBtn{
+    color: #FF047D;
+    background-color: #eaeaeacf;
+    height: 60px;
+    width: 120px;
+    border-radius: 25px;
+    border-color: #6fffe9;
+    font-size: x-large;
+}
+
+.regisBox{
+    background-color: black;
+    padding: 20px;
+    margin-top: 18%;
+    align-self: center;
+    justify-items: center;
+    text-align: center;
+}
+
+inp
