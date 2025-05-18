@@ -29,8 +29,9 @@ function Login() {
     <body className="landContainer">
       <div className='regisBox'>
           <form onSubmit={handleLogin}>
-          <h2>Login</h2>
+          <h2 className='whiteTitleText'>Login</h2>
           <input
+            className='regForm'
             type="text"
             placeholder="Username"
             value={username}
@@ -38,14 +39,17 @@ function Login() {
             required
           />
           <input
+            className='regForm'
             type="password"
             placeholder="Password"
             value={password}
             onChange={e => setPassword(e.target.value)}
             required
           />
-          <button type="submit">Login</button>
-          <button type="button" onClick={() => navigate("/")}>Back</button>
+          <div className='btnContainer'>
+            <button className='pinkBtn' type="submit" style={{ marginRight: "1rem" }}>Login</button>
+            <button className='regblackBtn' type="button" onClick={() => navigate("/")}>Back</button>
+          </div>
           <div>{message}</div>
           </form>
       </div>
