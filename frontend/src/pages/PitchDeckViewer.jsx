@@ -13,6 +13,41 @@ const PitchDeckViewer = () => {
   const [dragtextbox, setdragTextbox] = useState({});
   const [showNotes, setShowNotes] = useState(false);
 
+  const [selectedTheme, setSelectedTheme] = useState("default");
+
+  const themes = {
+    default: {
+      name: "Default",
+      background: "#ffffff",
+      textColor: "#000000",
+      borderColor: "#cccccc",
+    },
+    dark: {
+      name: "Dark Mode",
+      background: "#1e1e1e",
+      textColor: "#ffffff",
+      borderColor: "#444",
+    },
+    ocean: {
+      name: "Ocean Blue",
+      background: "#e0f7fa",
+      textColor: "#01579b",
+      borderColor: "#4dd0e1",
+    },
+    sunset: {
+      name: "Sunset",
+      background: "#ffe0b2",
+      textColor: "#bf360c",
+      borderColor: "#ff7043",
+    },
+    forest: {
+      name: "Forest",
+      background: "#e8f5e9",
+      textColor: "#1b5e20",
+      borderColor: "#81c784",
+    },
+  };
+
   useEffect(() => {
     axios.get(`http://127.0.0.1:3000/api/pitch-decks/${id}`)
       .then(res => setDeck(res.data))
@@ -68,7 +103,23 @@ const PitchDeckViewer = () => {
 
   return (
     <div className="results-container">
-      <div className="slide-canvas">
+      <div className="theme-panel">
+        <h3>Themes</h3>
+        {Object.entries(themes).map(([key, theme]) => (
+          <button
+            key={key}
+            className={`theme-btn ${selectedTheme === key ? "active" : ""}`}
+            onClick={() => setSelectedTheme(key)}
+          >
+            {theme.name}
+          </button>
+        ))}
+      </div>
+      <div className="slide-canvas" style={{
+        backgroundColor: themes[selectedTheme].background,
+        color: themes[selectedTheme].textColor,
+        borderColor: themes[selectedTheme].borderColor,
+      }}>
         {dragtextbox[`slide-${currentSlide}`]?.map((box) => (
           <Rnd
             key={box.id}
@@ -176,6 +227,8 @@ const PitchDeckViewer = () => {
           <strong>Presenter Notes:</strong> {slide.presenterNotes}
         </div>
       )}
+
+      
     </div>
   );
 };
