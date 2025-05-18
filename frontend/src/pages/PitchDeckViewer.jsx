@@ -10,7 +10,6 @@ const PitchDeckViewer = () => {
   const navigate = useNavigate();
   const [deck, setDeck] = useState(null);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [textBoxes, setTextBoxes] = useState([]);
   const [dragtextbox, setdragTextbox] = useState({});
 
   useEffect(() => {
@@ -59,23 +58,6 @@ const PitchDeckViewer = () => {
     }
   }, [deck, currentSlide]);
 
-  const handleAddTextBox = () => {
-    const newTextBox = {
-      id: Date.now(),
-      x: 100,
-      y: 100,
-      width: 200,
-      height: 100,
-      text: "Edit me!",
-    };
-    setTextBoxes((prev) => [...prev, newTextBox]);
-  };
-
-  const updateText = (id, value) => {
-    setTextBoxes((prev) =>
-      prev.map((box) => (box.id === id ? { ...box, text: value } : box))
-    );
-  };
 
   if (!deck) return null;
 
@@ -121,6 +103,17 @@ const PitchDeckViewer = () => {
               });
             }}
           >
+            <button
+              className="delete-btn"
+              onClick={() => {
+                setdragTextbox((prev) => {
+                  const updated = prev[`slide-${currentSlide}`].filter((b) => b.id !== box.id);
+                  return { ...prev, [`slide-${currentSlide}`]: updated };
+                });
+              }}
+            >
+              ❌
+            </button>
             <textarea
               className="rnd-textarea"
               value={box.text}
@@ -147,8 +140,25 @@ const PitchDeckViewer = () => {
         <button onClick={() => setCurrentSlide((p) => Math.min(p + 1, allSlides.length - 1))} disabled={currentSlide === allSlides.length - 1}>
           Next
         </button>
-        <button onClick={handleAddTextBox} style={{ marginLeft: "1rem" }}>
-          ➕ Add Text Box
+        <button
+          className="add-text-btn"
+          onClick={() => {
+            const newBox = {
+              id: nanoid(),
+              x: 50,
+              y: 50,
+              text: "New Text",
+              width: 200,
+              height: 60,
+            };
+            const key = `slide-${currentSlide}`;
+            setdragTextbox((prev) => ({
+              ...prev,
+              [key]: [...(prev[key] || []), newBox],
+            }));
+          }}
+        >
+          + Add Text Box
         </button>
       </div>
 
