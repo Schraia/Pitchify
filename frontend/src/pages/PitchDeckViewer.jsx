@@ -97,6 +97,7 @@ const PitchDeckViewer = () => {
       deckId: id,
       theme: selectedTheme,
       textboxes: dragtextbox,
+      images: slideImages,
       currentSlide,
     };
     localStorage.setItem(`pitch-deck-${id}`, JSON.stringify(saveData));
@@ -275,60 +276,58 @@ const PitchDeckViewer = () => {
 
         {slideImages[`slide-${currentSlide}`]?.map((img) => (
           <Rnd
-            key={img.id}
-            default={{
-              x: img.x,
-              y: img.y,
-              width: img.width,
-              height: img.height,
-            }}
-            bounds="parent"
-            onDragStop={(e, d) => {
-              setSlideImages((prev) => {
-                const updated = prev[`slide-${currentSlide}`].map((i) =>
-                  i.id === img.id ? { ...i, x: d.x, y: d.y } : i
-                );
-                return { ...prev, [`slide-${currentSlide}`]: updated };
-              });
-            }}
-            onResizeStop={(e, direction, ref, delta, position) => {
-              setSlideImages((prev) => {
-                const updated = prev[`slide-${currentSlide}`].map((i) =>
-                  i.id === img.id
-                    ? {
+          key={img.id}
+          default={{ x: img.x, y: img.y, width: img.width, height: img.height }}
+          bounds="parent"
+          className={`rnd-image ${selectedTextboxId === img.id ? "selected" : ""}`}
+          onClick={() => setSelectedTextboxId(img.id)}
+          onDragStop={(e, d) => {
+            setSelectedTextboxId(img.id);
+            setSlideImages((prev) => {
+              const updated = prev[`slide-${currentSlide}`].map((i) =>
+                i.id === img.id ? { ...i, x: d.x, y: d.y } : i
+              );
+              return { ...prev, [`slide-${currentSlide}`]: updated };
+            });
+          }}
+          onResizeStop={(e, direction, ref, delta, position) => {
+            setSelectedTextboxId(img.id);
+            setSlideImages((prev) => {
+              const updated = prev[`slide-${currentSlide}`].map((i) =>
+                i.id === img.id
+                  ? {
                       ...i,
                       width: ref.offsetWidth,
                       height: ref.offsetHeight,
                       ...position,
                     }
-                    : i
-                );
-                return { ...prev, [`slide-${currentSlide}`]: updated };
-              });
-            }}
-            className="image-container"
-          >
-            <div style={{ position: "relative", width: "100%", height: "100%" }}>
-              <img
-                src={img.src}
-                alt="Slide"
-                style={{ width: "100%", height: "100%", objectFit: "contain" }}
-              />
-              <button
-                className="delete-btn"
-                onClick={() => {
-                  setSlideImages((prev) => {
-                    const updated = prev[`slide-${currentSlide}`].filter(
-                      (i) => i.id !== img.id
-                    );
-                    return { ...prev, [`slide-${currentSlide}`]: updated };
-                  });
-                }}
-              >
-                ❌
-              </button>
-            </div>
-          </Rnd>
+                  : i
+              );
+              return { ...prev, [`slide-${currentSlide}`]: updated };
+            });
+          }}
+        >
+          {selectedTextboxId === img.id && (
+            <button
+              className="delete-btn"
+              onClick={() => {
+                setSlideImages((prev) => {
+                  const updated = prev[`slide-${currentSlide}`].filter((i) => i.id !== img.id);
+                  return { ...prev, [`slide-${currentSlide}`]: updated };
+                });
+                setSelectedTextboxId(null);
+              }}
+            >
+              ❌
+            </button>
+          )}
+          <img
+            src={img.src}
+            alt="slide img"
+            style={{ width: "100%", height: "100%", pointerEvents: "none", userSelect: "none" }}
+            draggable={false}
+          />
+        </Rnd>
         ))}
       </div>
 
