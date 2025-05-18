@@ -1,16 +1,17 @@
+import { Rnd } from "react-rnd";
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axios from "axios";
-import "./styles/PitchResults.css";
+import "./styles/PitchDeckViewer.css";
 
 const PitchDeckViewer = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [deck, setDeck] = useState(null);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [textBoxes, setTextBoxes] = useState([]);
 
   useEffect(() => {
-    console.log("Looking up ID:", id);
     axios.get(`http://127.0.0.1:3000/api/pitch-decks/${id}`)
       .then(res => setDeck(res.data))
       .catch(() => {
@@ -19,22 +20,33 @@ const PitchDeckViewer = () => {
       });
   }, [id, navigate]);
 
+  const handleAddTextBox = () => {
+    const newTextBox = {
+      id: Date.now(),
+      x: 100,
+      y: 100,
+      width: 200,
+      height: 100,
+      text: "Edit me!",
+    };
+    setTextBoxes((prev) => [...prev, newTextBox]);
+  };
+
+  const updateText = (id, value) => {
+    setTextBoxes((prev) =>
+      prev.map((box) => (box.id === id ? { ...box, text: value } : box))
+    );
+  };
+
   if (!deck) return null;
 
   const { pitchTitle, slides = [] } = deck;
-
-  const allSlides = [
-    { title: pitchTitle, content: "", presenterNotes: "", type: "title" },
-    ...slides.map((s) => ({ ...s, type: "content" })),
-  ];
-
+  const allSlides = [{ title: pitchTitle, content: "", presenterNotes: "" }, ...slides];
   const slide = allSlides[currentSlide];
-  const handlePrev = () => setCurrentSlide((p) => Math.max(p - 1, 0));
-  const handleNext = () => setCurrentSlide((p) => Math.min(p + 1, allSlides.length - 1));
 
   return (
     <div className="results-container">
-      <div className="slide-canvas">
+      <div className="slide-canvas" style={{ position: "relative", height: "500px", border: "1px solid #ccc" }}>
         <h2 className="slide-title">{slide.title}</h2>
         {slide.content && (
           <p className="slide-content">
@@ -43,20 +55,40 @@ const PitchDeckViewer = () => {
               : ""}
           </p>
         )}
+
+        {textBoxes.map((box) => (
+          <Rnd
+            key={box.id}
+            default={{
+              x: box.x,
+              y: box.y,
+              width: box.width,
+              height: box.height,
+            }}
+            bounds="parent"
+            className="rnd-textbox"
+          >
+            <textarea
+              className="rnd-textarea"
+              value={box.text}
+              onChange={(e) => updateText(box.id, e.target.value)}
+            />
+          </Rnd>
+        ))}
       </div>
 
       <div className="navigation">
-        <button onClick={handlePrev} disabled={currentSlide === 0}>
+        <button onClick={() => setCurrentSlide((p) => Math.max(p - 1, 0))} disabled={currentSlide === 0}>
           Previous
         </button>
         <span>
           Slide {currentSlide + 1} of {allSlides.length}
         </span>
-        <button
-          onClick={handleNext}
-          disabled={currentSlide === allSlides.length - 1}
-        >
+        <button onClick={() => setCurrentSlide((p) => Math.min(p + 1, allSlides.length - 1))} disabled={currentSlide === allSlides.length - 1}>
           Next
+        </button>
+        <button onClick={handleAddTextBox} style={{ marginLeft: "1rem" }}>
+          ➕ Add Text Box
         </button>
       </div>
 
@@ -69,6 +101,4 @@ const PitchDeckViewer = () => {
   );
 };
 
-// CSS styles for the component
 export default PitchDeckViewer;
-
