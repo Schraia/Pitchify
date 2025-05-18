@@ -21,11 +21,10 @@ const PitchDeckViewer = () => {
 
   if (!deck) return null;
 
-  const { pitchTitle, refinedProblem, slides = [] } = deck;
+  const { pitchTitle, slides = [] } = deck;
 
   const allSlides = [
     { title: pitchTitle, content: "", presenterNotes: "", type: "title" },
-    { title: "Refined Problem", content: refinedProblem, presenterNotes: "", type: "problem" },
     ...slides.map((s) => ({ ...s, type: "content" })),
   ];
 
@@ -39,21 +38,37 @@ const PitchDeckViewer = () => {
         <h2 className="slide-title">{slide.title}</h2>
         {slide.content && (
           <p className="slide-content">
-            {typeof slide.content === "string" ? slide.content.replace(/\*+/g, "").trim() : ""}
+            {typeof slide.content === "string"
+              ? slide.content.replace(/\*+/g, "").trim()
+              : ""}
           </p>
-        )}
-        {slide.presenterNotes && (
-          <p className="slide-notes">Notes: {slide.presenterNotes}</p>
         )}
       </div>
 
       <div className="navigation">
-        <button onClick={handlePrev} disabled={currentSlide === 0}>Previous</button>
-        <span>Slide {currentSlide + 1} of {allSlides.length}</span>
-        <button onClick={handleNext} disabled={currentSlide === allSlides.length - 1}>Next</button>
+        <button onClick={handlePrev} disabled={currentSlide === 0}>
+          Previous
+        </button>
+        <span>
+          Slide {currentSlide + 1} of {allSlides.length}
+        </span>
+        <button
+          onClick={handleNext}
+          disabled={currentSlide === allSlides.length - 1}
+        >
+          Next
+        </button>
       </div>
+
+      {slide.presenterNotes && (
+        <div className="presenter-notes">
+          <strong>Presenter Notes:</strong> {slide.presenterNotes}
+        </div>
+      )}
     </div>
   );
 };
 
+// CSS styles for the component
 export default PitchDeckViewer;
+

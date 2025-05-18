@@ -37,7 +37,6 @@ const PitchDeckList = () => {
           >
             {/* <h3>{pitch.id || "NO ID"}</h3> */}
             <h3>{pitch.pitchTitle || "Untitled Pitch"}</h3>
-            <p>{pitch.refinedProblem?.slice(0, 50)}...</p>
           </div>
         ))}
       </div>

@@ -16,7 +16,6 @@ Strictly follow the Output Format in JSON. Do not escape any characters like quo
 ### Output Format (in JSON):
 {
   "pitchTitle": "Catchy title for the pitch",
-  "refinedProblem": "Refined and polished problem statement",
   "slides": [
     {
       "title": "Slide Title",
