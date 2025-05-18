@@ -16,6 +16,7 @@ const PitchDeckViewer = () => {
   const [selectedTheme, setSelectedTheme] = useState("default");
   const canvasRef = useRef(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [slideImages, setSlideImages] = useState({});
 
   const themes = {
     default: {
@@ -50,6 +51,29 @@ const PitchDeckViewer = () => {
     },
   };
 
+  const handleAddImage = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const newImage = {
+        id: nanoid(),
+        x: 100,
+        y: 100,
+        width: 200,
+        height: 150,
+        src: reader.result,
+      };
+      const key = `slide-${currentSlide}`;
+      setSlideImages((prev) => ({
+        ...prev,
+        [key]: [...(prev[key] || []), newImage],
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -77,7 +101,7 @@ const PitchDeckViewer = () => {
     };
     localStorage.setItem(`pitch-deck-${id}`, JSON.stringify(saveData));
   }, [selectedTheme, dragtextbox, currentSlide]);
-  
+
   useEffect(() => {
     axios
       .get(`http://127.0.0.1:3000/api/pitch-decks/${id}`)
@@ -87,6 +111,7 @@ const PitchDeckViewer = () => {
           const parsed = JSON.parse(savedData);
           setSelectedTheme(parsed.theme || "default");
           setdragTextbox(parsed.textboxes || {});
+          setSlideImages(parsed.images || {});
           setCurrentSlide(parsed.currentSlide || 0);
         }
         setDeck(res.data);
@@ -148,6 +173,7 @@ const PitchDeckViewer = () => {
       deckId: id,
       theme: selectedTheme,
       textboxes: dragtextbox,
+      images: slideImages,
       currentSlide,
     };
 
@@ -245,11 +271,69 @@ const PitchDeckViewer = () => {
               }}
             />
           </Rnd>
+        ))}
 
+        {slideImages[`slide-${currentSlide}`]?.map((img) => (
+          <Rnd
+            key={img.id}
+            default={{
+              x: img.x,
+              y: img.y,
+              width: img.width,
+              height: img.height,
+            }}
+            bounds="parent"
+            onDragStop={(e, d) => {
+              setSlideImages((prev) => {
+                const updated = prev[`slide-${currentSlide}`].map((i) =>
+                  i.id === img.id ? { ...i, x: d.x, y: d.y } : i
+                );
+                return { ...prev, [`slide-${currentSlide}`]: updated };
+              });
+            }}
+            onResizeStop={(e, direction, ref, delta, position) => {
+              setSlideImages((prev) => {
+                const updated = prev[`slide-${currentSlide}`].map((i) =>
+                  i.id === img.id
+                    ? {
+                      ...i,
+                      width: ref.offsetWidth,
+                      height: ref.offsetHeight,
+                      ...position,
+                    }
+                    : i
+                );
+                return { ...prev, [`slide-${currentSlide}`]: updated };
+              });
+            }}
+            className="image-container"
+          >
+            <div style={{ position: "relative", width: "100%", height: "100%" }}>
+              <img
+                src={img.src}
+                alt="Slide"
+                style={{ width: "100%", height: "100%", objectFit: "contain" }}
+              />
+              <button
+                className="delete-btn"
+                onClick={() => {
+                  setSlideImages((prev) => {
+                    const updated = prev[`slide-${currentSlide}`].filter(
+                      (i) => i.id !== img.id
+                    );
+                    return { ...prev, [`slide-${currentSlide}`]: updated };
+                  });
+                }}
+              >
+                ❌
+              </button>
+            </div>
+          </Rnd>
         ))}
       </div>
 
       <div className="navigation">
+
         <button onClick={() => setCurrentSlide((p) => Math.max(p - 1, 0))} disabled={currentSlide === 0}>
           Previous
         </button>
@@ -258,6 +342,19 @@ const PitchDeckViewer = () => {
         </span>
         <button onClick={() => setCurrentSlide((p) => Math.min(p + 1, allSlides.length - 1))} disabled={currentSlide === allSlides.length - 1}>
           Next
+        </button>
+        <input
+          type="file"
+          accept="image/*"
+          id="image-upload"
+          style={{ display: "none" }}
+          onChange={(e) => handleAddImage(e)}
+        />
+        <button
+          className="add-image-btn"
+          onClick={() => document.getElementById("image-upload").click()}
+        >
+          🖼️ Add Image
         </button>
         <button
           className="add-text-btn"
