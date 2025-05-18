@@ -1,6 +1,6 @@
 import { Rnd } from "react-rnd";
 import { useParams, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "./styles/PitchDeckViewer.css";
 import { nanoid } from "nanoid";
@@ -12,8 +12,9 @@ const PitchDeckViewer = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [dragtextbox, setdragTextbox] = useState({});
   const [showNotes, setShowNotes] = useState(false);
-
+  const [selectedTextboxId, setSelectedTextboxId] = useState(null);
   const [selectedTheme, setSelectedTheme] = useState("default");
+  const canvasRef = useRef(null);
 
   const themes = {
     default: {
@@ -47,6 +48,23 @@ const PitchDeckViewer = () => {
       borderColor: "#81c784",
     },
   };
+  
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        canvasRef.current &&
+        !canvasRef.current.contains(event.target)
+      ) {
+        setSelectedTextboxId(null);
+      }
+    };
+  
+    document.addEventListener("mousedown", handleClickOutside);
+  
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     axios.get(`http://127.0.0.1:3000/api/pitch-decks/${id}`)
@@ -115,7 +133,7 @@ const PitchDeckViewer = () => {
           </button>
         ))}
       </div>
-      <div className="slide-canvas" style={{
+      <div ref={canvasRef} className="slide-canvas" style={{
         backgroundColor: themes[selectedTheme].background,
         color: themes[selectedTheme].textColor,
         borderColor: themes[selectedTheme].borderColor,
@@ -130,8 +148,10 @@ const PitchDeckViewer = () => {
               height: box.height,
             }}
             bounds="parent"
-            className="rnd-textbox"
+            className={`rnd-textbox ${selectedTextboxId === box.id ? "selected" : ""}`}
+            onClick={() => setSelectedTextboxId(box.id)}
             onDragStop={(e, d) => {
+              setSelectedTextboxId(box.id);
               setdragTextbox((prev) => {
                 const updated = prev[`slide-${currentSlide}`].map((b) =>
                   b.id === box.id ? { ...b, x: d.x, y: d.y } : b
@@ -140,6 +160,7 @@ const PitchDeckViewer = () => {
               });
             }}
             onResizeStop={(e, direction, ref, delta, position) => {
+              setSelectedTextboxId(box.id);
               setdragTextbox((prev) => {
                 const updated = prev[`slide-${currentSlide}`].map((b) =>
                   b.id === box.id
@@ -155,21 +176,25 @@ const PitchDeckViewer = () => {
               });
             }}
           >
-            <button
-              className="delete-btn"
-              onClick={() => {
-                setdragTextbox((prev) => {
-                  const updated = prev[`slide-${currentSlide}`].filter((b) => b.id !== box.id);
-                  return { ...prev, [`slide-${currentSlide}`]: updated };
-                });
-              }}
-            >
-              ❌
-            </button>
+            {selectedTextboxId === box.id && (
+              <button
+                className="delete-btn"
+                onClick={() => {
+                  setdragTextbox((prev) => {
+                    const updated = prev[`slide-${currentSlide}`].filter((b) => b.id !== box.id);
+                    return { ...prev, [`slide-${currentSlide}`]: updated };
+                  });
+                  setSelectedTextboxId(null); 
+                }}
+              >
+                ❌
+              </button>
+            )}
             <textarea
               className="rnd-textarea"
               value={box.text}
               style={{ color: themes[selectedTheme].textColor }}
+              onClick={() => setSelectedTextboxId(box.id)}
               onChange={(e) => {
                 setdragTextbox((prev) => {
                   const updated = prev[`slide-${currentSlide}`].map((b) =>
@@ -180,6 +205,7 @@ const PitchDeckViewer = () => {
               }}
             />
           </Rnd>
+
         ))}
       </div>
 
