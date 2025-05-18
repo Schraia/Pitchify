@@ -169,6 +169,7 @@ const PitchDeckViewer = () => {
             <textarea
               className="rnd-textarea"
               value={box.text}
+              style={{ color: themes[selectedTheme].textColor }}
               onChange={(e) => {
                 setdragTextbox((prev) => {
                   const updated = prev[`slide-${currentSlide}`].map((b) =>
@@ -228,7 +229,7 @@ const PitchDeckViewer = () => {
         </div>
       )}
 
-      
+
     </div>
   );
 };

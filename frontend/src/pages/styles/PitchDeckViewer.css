@@ -28,9 +28,9 @@
   }
   
   .rnd-textbox {
-    border: 1px solid #ccc;
+    border: transparent;
     border-radius: 6px;
-    background: white;
+    background: transparent;
     padding: 0.25rem;
     overflow: hidden;
     position: relative;
@@ -41,7 +41,7 @@
     height: 100%;
     border: none;
     resize: none;
-    background: transparent;
+    background: transparent; 
     outline: none;
     font-size: 16px;
     padding: 0.5rem;
