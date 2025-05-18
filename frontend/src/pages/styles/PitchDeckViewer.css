@@ -74,3 +74,12 @@
     border-radius: 6px;
     cursor: pointer;
   }
+  .toggle-notes-btn {
+    margin-left: 10px;
+    background-color: #d1e7dd;
+    border: none;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-weight: bold;
+    border-radius: 6px;
+  }

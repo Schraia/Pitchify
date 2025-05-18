@@ -11,6 +11,7 @@ const PitchDeckViewer = () => {
   const [deck, setDeck] = useState(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [dragtextbox, setdragTextbox] = useState({});
+  const [showNotes, setShowNotes] = useState(false);
 
   useEffect(() => {
     axios.get(`http://127.0.0.1:3000/api/pitch-decks/${id}`)
@@ -160,9 +161,17 @@ const PitchDeckViewer = () => {
         >
           + Add Text Box
         </button>
+        {slide.presenterNotes && (
+          <button
+            className="toggle-notes-btn"
+            onClick={() => setShowNotes((prev) => !prev)}
+          >
+            {showNotes ? "Hide" : "Show"} Presenter Notes
+          </button>
+        )}
       </div>
 
-      {slide.presenterNotes && (
+      {showNotes && slide.presenterNotes && (
         <div className="presenter-notes">
           <strong>Presenter Notes:</strong> {slide.presenterNotes}
         </div>
