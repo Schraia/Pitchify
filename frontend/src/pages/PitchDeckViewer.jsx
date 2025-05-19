@@ -79,23 +79,6 @@ const PitchDeckViewer = () => {
   };
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        canvasRef.current &&
-        !canvasRef.current.contains(event.target)
-      ) {
-        setSelectedTextboxId(null);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  useEffect(() => {
     if (!deck) return;
     const saveData = {
       deckId: id,
@@ -304,262 +287,322 @@ const PitchDeckViewer = () => {
   };
 
   return (
-    <div className="results-container">
-      <div className="theme-panel">
-        <h3>Themes</h3>
-        {Object.entries(themes).map(([key, theme]) => (
-          <button
-            key={key}
-            className={`theme-btn ${selectedTheme === key ? "active" : ""}`}
-            onClick={() => setSelectedTheme(key)}
-          >
-            {theme.name}
-          </button>
-        ))}
-      </div>
-      <div id="slides-pdf" ref={canvasRef} className="slide-canvas" style={{
-        backgroundColor: themes[selectedTheme].background,
-        color: themes[selectedTheme].textColor,
-        borderColor: themes[selectedTheme].borderColor,
-      }}>
-        {dragtextbox[`slide-${currentSlide}`]?.map((box) => (
-          <Rnd
-            key={box.id}
-            default={{
-              x: box.x,
-              y: box.y,
-              width: box.width,
-              height: box.height,
-            }}
-            bounds="parent"
-            className={`rnd-textbox ${selectedTextboxId === box.id ? "selected" : ""}`}
-            onClick={() => setSelectedTextboxId(box.id)}
-            onDragStop={(e, d) => {
-              setSelectedTextboxId(box.id);
-              setdragTextbox((prev) => {
-                const updated = prev[`slide-${currentSlide}`].map((b) =>
-                  b.id === box.id ? { ...b, x: d.x, y: d.y } : b
-                );
-                return { ...prev, [`slide-${currentSlide}`]: updated };
-              });
-            }}
-            onResizeStop={(e, direction, ref, delta, position) => {
-              setSelectedTextboxId(box.id);
-              setdragTextbox((prev) => {
-                const updated = prev[`slide-${currentSlide}`].map((b) =>
-                  b.id === box.id
-                    ? {
-                      ...b,
-                      width: ref.offsetWidth,
-                      height: ref.offsetHeight,
-                      ...position,
-                    }
-                    : b
-                );
-                return { ...prev, [`slide-${currentSlide}`]: updated };
-              });
-            }}
-          >
-            {selectedTextboxId === box.id && !isExportingPDF && (
+    <div className="main-content">
+      {selectedTextboxId && (() => {
+        const box = dragtextbox[`slide-${currentSlide}`]?.find(b => b.id === selectedTextboxId);
+        if (!box) return null;
+
+        return (
+          <div className="format-toolbar">
+            <label>Text Color:</label>
+            {["#000000", "#FF0000", "#007BFF", "#28A745", "#FF8C00"].map(color => (
               <button
-                className="delete-btn"
+                key={color}
                 onClick={() => {
-                  setdragTextbox((prev) => {
-                    const updated = prev[`slide-${currentSlide}`].filter((b) => b.id !== box.id);
-                    return { ...prev, [`slide-${currentSlide}`]: updated };
-                  });
-                  setSelectedTextboxId(null);
-                }}
-              >
-                ❌
-              </button>
-            )}
-            {isExportingPDF ? (
-              <div
-                style={{
-                  color: themes[selectedTheme].textColor,
-                  fontSize: "1.1rem",
-                  width: "100%",
-                  minHeight: "40px",
-                  whiteSpace: "pre-wrap",
-                  wordBreak: "break-word",
-                  background: "transparent",
-                  border: "none",
-                  padding: 0,
-                }}
-              >
-                {box.text}
-              </div>
-            ) : (
-              <textarea
-                className="rnd-textarea"
-                value={box.text}
-                style={{
-                  color: themes[selectedTheme].textColor,
-                  resize: "none",
-                  overflow: "hidden",
-                  minHeight: "40px",
-                  fontSize: "1.1rem",
-                  width: "100%",
-                  height: "auto"
-                }}
-                onClick={() => setSelectedTextboxId(box.id)}
-                onChange={(e) => {
-                  setdragTextbox((prev) => {
-                    const updated = prev[`slide-${currentSlide}`].map((b) =>
-                      b.id === box.id ? { ...b, text: e.target.value } : b
+                  setdragTextbox(prev => {
+                    const updated = prev[`slide-${currentSlide}`].map(b =>
+                      b.id === box.id ? { ...b, color } : b
                     );
                     return { ...prev, [`slide-${currentSlide}`]: updated };
                   });
-                  e.target.style.height = "auto";
-                  e.target.style.height = e.target.scrollHeight + "px";
                 }}
-                onInput={e => {
-                  e.target.style.height = "auto";
-                  e.target.style.height = e.target.scrollHeight + "px";
+                style={{
+                  backgroundColor: color,
+                  width: 24,
+                  height: 24,
+                  border: box.color === color ? "2px solid black" : "1px solid gray",
+                  marginRight: 6,
+                  cursor: "pointer"
                 }}
               />
-            )}
-          </Rnd>
-        ))}
+            ))}
 
-        {slideImages[`slide-${currentSlide}`]?.map((img) => (
-          <Rnd
-          key={img.id}
-          default={{ x: img.x, y: img.y, width: img.width, height: img.height }}
-          bounds="parent"
-          className={`rnd-image ${selectedTextboxId === img.id ? "selected" : ""}`}
-          onClick={() => setSelectedTextboxId(img.id)}
-          onDragStop={(e, d) => {
-            setSelectedTextboxId(img.id);
-            setSlideImages((prev) => {
-              const updated = prev[`slide-${currentSlide}`].map((i) =>
-                i.id === img.id ? { ...i, x: d.x, y: d.y } : i
-              );
-              return { ...prev, [`slide-${currentSlide}`]: updated };
-            });
-          }}
-          onResizeStop={(e, direction, ref, delta, position) => {
-            setSelectedTextboxId(img.id);
-            setSlideImages((prev) => {
-              const updated = prev[`slide-${currentSlide}`].map((i) =>
-                i.id === img.id
-                  ? {
-                      ...i,
-                      width: ref.offsetWidth,
-                      height: ref.offsetHeight,
-                      ...position,
-                    }
-                  : i
-              );
-              return { ...prev, [`slide-${currentSlide}`]: updated };
-            });
-          }}
-        >
-          {selectedTextboxId === img.id && (
-            <button
-              className="delete-btn"
-              onClick={() => {
-                setSlideImages((prev) => {
-                  const updated = prev[`slide-${currentSlide}`].filter((i) => i.id !== img.id);
+            <label style={{ marginLeft: 10 }}>Font Size:</label>
+            <input
+              type="number"
+              min="10"
+              max="100"
+              value={box.fontSize || 16}
+              onChange={(e) => {
+                const newSize = parseInt(e.target.value) || 16;
+                setdragTextbox(prev => {
+                  const updated = prev[`slide-${currentSlide}`].map(b =>
+                    b.id === box.id ? { ...b, fontSize: newSize } : b
+                  );
                   return { ...prev, [`slide-${currentSlide}`]: updated };
                 });
-                setSelectedTextboxId(null);
+              }}
+              style={{ width: 60, marginLeft: 4 }}
+            />
+          </div>
+        );
+      })()}
+      <div className="results-container">
+        <div className="theme-panel">
+          <h3>Themes</h3>
+          {Object.entries(themes).map(([key, theme]) => (
+            <button
+              key={key}
+              className={`theme-btn ${selectedTheme === key ? "active" : ""}`}
+              onClick={() => setSelectedTheme(key)}
+            >
+              {theme.name}
+            </button>
+          ))}
+        </div>
+
+        <div id="slides-pdf" ref={canvasRef} className="slide-canvas" 
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            setSelectedTextboxId(null);
+          }
+        }}
+        style={{
+          backgroundColor: themes[selectedTheme].background,
+          color: themes[selectedTheme].textColor,
+          borderColor: themes[selectedTheme].borderColor,
+        }}>
+          {dragtextbox[`slide-${currentSlide}`]?.map((box) => (
+            <Rnd
+              key={box.id}
+              default={{
+                x: box.x,
+                y: box.y,
+                width: box.width,
+                height: box.height,
+              }}
+              bounds="parent"
+              className={`rnd-textbox ${selectedTextboxId === box.id ? "selected" : ""}`}
+              onClick={() => setSelectedTextboxId(box.id)}
+              onDragStop={(e, d) => {
+                setSelectedTextboxId(box.id);
+                setdragTextbox((prev) => {
+                  const updated = prev[`slide-${currentSlide}`].map((b) =>
+                    b.id === box.id ? { ...b, x: d.x, y: d.y } : b
+                  );
+                  return { ...prev, [`slide-${currentSlide}`]: updated };
+                });
+              }}
+              onResizeStop={(e, direction, ref, delta, position) => {
+                setSelectedTextboxId(box.id);
+                setdragTextbox((prev) => {
+                  const updated = prev[`slide-${currentSlide}`].map((b) =>
+                    b.id === box.id
+                      ? {
+                        ...b,
+                        width: ref.offsetWidth,
+                        height: ref.offsetHeight,
+                        ...position,
+                      }
+                      : b
+                  );
+                  return { ...prev, [`slide-${currentSlide}`]: updated };
+                });
               }}
             >
-              ❌
+              {selectedTextboxId === box.id && !isExportingPDF && (
+                <button
+                  className="delete-btn"
+                  onClick={() => {
+                    setdragTextbox((prev) => {
+                      const updated = prev[`slide-${currentSlide}`].filter((b) => b.id !== box.id);
+                      return { ...prev, [`slide-${currentSlide}`]: updated };
+                    });
+                    setSelectedTextboxId(null);
+                  }}
+                >
+                  ❌
+                </button>
+              )}
+              {isExportingPDF ? (
+                <div
+                  style={{
+                    color: box.color || themes[selectedTheme].textColor,
+                    fontSize: `${box.fontSize || 16}px`,
+                    width: "100%",
+                    minHeight: "40px",
+                    whiteSpace: "pre-wrap",
+                    wordBreak: "break-word",
+                    background: "transparent",
+                    border: "none",
+                    padding: 0,
+                  }}
+                >
+                  {box.text}
+                </div>
+              ) : (
+                <textarea
+                  className="rnd-textarea"
+                  value={box.text}
+                  style={{
+                    color: box.color || themes[selectedTheme].textColor,
+                    fontSize: `${box.fontSize || 16}px`,
+                    resize: "none",
+                    overflow: "hidden",
+                    minHeight: "40px",
+                    width: "100%",
+                    height: "auto"
+                  }}
+                  onClick={() => setSelectedTextboxId(box.id)}
+                  onChange={(e) => {
+                    setdragTextbox((prev) => {
+                      const updated = prev[`slide-${currentSlide}`].map((b) =>
+                        b.id === box.id ? { ...b, text: e.target.value } : b
+                      );
+                      return { ...prev, [`slide-${currentSlide}`]: updated };
+                    });
+                    e.target.style.height = "auto";
+                    e.target.style.height = e.target.scrollHeight + "px";
+                  }}
+                  onInput={e => {
+                    e.target.style.height = "auto";
+                    e.target.style.height = e.target.scrollHeight + "px";
+                  }}
+                />
+              )}
+            </Rnd>
+          ))}
+
+          {slideImages[`slide-${currentSlide}`]?.map((img) => (
+            <Rnd
+              key={img.id}
+              default={{ x: img.x, y: img.y, width: img.width, height: img.height }}
+              bounds="parent"
+              className={`rnd-image ${selectedTextboxId === img.id ? "selected" : ""}`}
+              onClick={() => setSelectedTextboxId(img.id)}
+              onDragStop={(e, d) => {
+                setSelectedTextboxId(img.id);
+                setSlideImages((prev) => {
+                  const updated = prev[`slide-${currentSlide}`].map((i) =>
+                    i.id === img.id ? { ...i, x: d.x, y: d.y } : i
+                  );
+                  return { ...prev, [`slide-${currentSlide}`]: updated };
+                });
+              }}
+              onResizeStop={(e, direction, ref, delta, position) => {
+                setSelectedTextboxId(img.id);
+                setSlideImages((prev) => {
+                  const updated = prev[`slide-${currentSlide}`].map((i) =>
+                    i.id === img.id
+                      ? {
+                        ...i,
+                        width: ref.offsetWidth,
+                        height: ref.offsetHeight,
+                        ...position,
+                      }
+                      : i
+                  );
+                  return { ...prev, [`slide-${currentSlide}`]: updated };
+                });
+              }}
+            >
+              {selectedTextboxId === img.id && (
+                <button
+                  className="delete-btn"
+                  onClick={() => {
+                    setSlideImages((prev) => {
+                      const updated = prev[`slide-${currentSlide}`].filter((i) => i.id !== img.id);
+                      return { ...prev, [`slide-${currentSlide}`]: updated };
+                    });
+                    setSelectedTextboxId(null);
+                  }}
+                >
+                  ❌
+                </button>
+              )}
+              <img
+                src={img.src}
+                alt="slide img"
+                style={{ width: "100%", height: "100%", pointerEvents: "none", userSelect: "none" }}
+                draggable={false}
+              />
+            </Rnd>
+          ))}
+        </div>
+
+        <div className="navigation">
+
+          <button onClick={() => setCurrentSlide((p) => Math.max(p - 1, 0))} disabled={currentSlide === 0}>
+            Previous
+          </button>
+          <span>
+            Slide {currentSlide + 1} of {allSlides.length}
+          </span>
+          <button onClick={() => setCurrentSlide((p) => Math.min(p + 1, allSlides.length - 1))} disabled={currentSlide === allSlides.length - 1}>
+            Next
+          </button>
+          <input
+            type="file"
+            accept="image/*"
+            id="image-upload"
+            style={{ display: "none" }}
+            onChange={(e) => handleAddImage(e)}
+          />
+          <button
+            className="add-image-btn"
+            onClick={() => document.getElementById("image-upload").click()}
+          >
+            🖼️ Add Image
+          </button>
+          <button
+            className="add-text-btn"
+            onClick={() => {
+              const newBox = {
+                id: nanoid(),
+                x: 50,
+                y: 50,
+                text: "New Text",
+                width: 200,
+                height: 60,
+                color: "#000000",
+                fontSize: 16
+              };
+              const key = `slide-${currentSlide}`;
+              setdragTextbox((prev) => ({
+                ...prev,
+                [key]: [...(prev[key] || []), newBox],
+              }));
+            }}
+          >
+            + Add Text Box
+          </button>
+          {slide.presenterNotes && (
+            <button
+              className="toggle-notes-btn"
+              onClick={() => setShowNotes((prev) => !prev)}
+            >
+              {showNotes ? "Hide" : "Show"} Presenter Notes
             </button>
           )}
-          <img
-            src={img.src}
-            alt="slide img"
-            style={{ width: "100%", height: "100%", pointerEvents: "none", userSelect: "none" }}
-            draggable={false}
-          />
-        </Rnd>
-        ))}
-      </div>
-
-      <div className="navigation">
-
-        <button onClick={() => setCurrentSlide((p) => Math.max(p - 1, 0))} disabled={currentSlide === 0}>
-          Previous
-        </button>
-        <span>
-          Slide {currentSlide + 1} of {allSlides.length}
-        </span>
-        <button onClick={() => setCurrentSlide((p) => Math.min(p + 1, allSlides.length - 1))} disabled={currentSlide === allSlides.length - 1}>
-          Next
-        </button>
-        <input
-          type="file"
-          accept="image/*"
-          id="image-upload"
-          style={{ display: "none" }}
-          onChange={(e) => handleAddImage(e)}
-        />
-        <button
-          className="add-image-btn"
-          onClick={() => document.getElementById("image-upload").click()}
-        >
-          🖼️ Add Image
-        </button>
-        <button
-          className="add-text-btn"
-          onClick={() => {
-            const newBox = {
-              id: nanoid(),
-              x: 50,
-              y: 50,
-              text: "New Text",
-              width: 200,
-              height: 60,
-            };
-            const key = `slide-${currentSlide}`;
-            setdragTextbox((prev) => ({
-              ...prev,
-              [key]: [...(prev[key] || []), newBox],
-            }));
-          }}
-        >
-          + Add Text Box
-        </button>
-        {slide.presenterNotes && (
-          <button
-            className="toggle-notes-btn"
-            onClick={() => setShowNotes((prev) => !prev)}
-          >
-            {showNotes ? "Hide" : "Show"} Presenter Notes
+          <button onClick={handleSave} disabled={isSaving}>
+            {isSaving ? "Saving..." : "💾 Save"}
           </button>
-        )}
-        <button onClick={handleSave} disabled={isSaving}>
-          {isSaving ? "Saving..." : "💾 Save"}
-        </button>
-        <button onClick={handleDownloadPDF}>Download as PDF</button>
-        <button onClick={handleDownloadPPTX}>Download as PPTX</button>
-        <button
-          style={{
-            background: "#ffe0b2",
-            color: "#bf360c",
-            border: "1px solid #bf360c",
-            borderRadius: "4px",
-            marginRight: "0.5rem",
-            fontWeight: "bold",
-          }}
-          onClick={handleDeleteSlide}
-          disabled={currentSlide === 0} // Don't allow deleting the title slide
-        >
-          🗑️ Delete Slide
-        </button>
-      </div>
-
-      {showNotes && slide.presenterNotes && (
-        <div className="presenter-notes">
-          <strong>Presenter Notes:</strong> {slide.presenterNotes}
+          <button onClick={handleDownloadPDF}>Download as PDF</button>
+          <button onClick={handleDownloadPPTX}>Download as PPTX</button>
+          <button
+            style={{
+              background: "#ffe0b2",
+              color: "#bf360c",
+              border: "1px solid #bf360c",
+              borderRadius: "4px",
+              marginRight: "0.5rem",
+              fontWeight: "bold",
+            }}
+            onClick={handleDeleteSlide}
+            disabled={currentSlide === 0} // Don't allow deleting the title slide
+          >
+            🗑️ Delete Slide
+          </button>
         </div>
-      )}
+
+        {showNotes && slide.presenterNotes && (
+          <div className="presenter-notes">
+            <strong>Presenter Notes:</strong> {slide.presenterNotes}
+          </div>
+        )}
 
 
+      </div>
     </div>
   );
 };
