@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom';
+import "./styles/webstyle.css";
 
 function Login() {
   const [username, setUsername] = useState('')
@@ -25,26 +26,34 @@ function Login() {
   }
 
   return (
-    <form onSubmit={handleLogin}>
-      <h2>Login</h2>
-      <input
-        type="text"
-        placeholder="Username"
-        value={username}
-        onChange={e => setUsername(e.target.value)}
-        required
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={e => setPassword(e.target.value)}
-        required
-      />
-      <button type="submit">Login</button>
-      <button type="button" onClick={() => navigate("/")}>Back</button>
-      <div>{message}</div>
-    </form>
+      <div className='regContainer'>
+          <div className='logBox'>
+            <form onSubmit={handleLogin}>
+            <h2 className='whiteTitleText'>Login</h2>
+            <input
+              className='regForm'
+              type="text"
+              placeholder="Username"
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              required
+            />
+            <input
+              className='regForm'
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+            />
+            <div className='btnContainer'>
+              <button className='pinkWhiteBtn' type="submit" style={{ marginRight: "1rem" }}>Login</button>
+              <button className='regblackBtn' type="button" onClick={() => navigate("/")}>Back</button>
+            </div>
+            <div>{message}</div>
+            </form>
+          </div>
+      </div>
   )
 }
 

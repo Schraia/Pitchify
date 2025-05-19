@@ -11,11 +11,11 @@ const router = createBrowserRouter([
   { path: "/", element: <LandingPage /> },
   { path: "/login", element: <Login /> },
   { path: "/register", element: <Register /> },
+  { path: "/pitch-decks/:id", element: <PitchDeckViewer />},
   {
     path: "/", element: <NavbarLayout />, children: [
       { path: "/main", element: <MainPage />},
       { path: "/decks", element: <PitchDeckList />},
-      { path: "/pitch-decks/:id", element: <PitchDeckViewer />},
     ]
 
   },

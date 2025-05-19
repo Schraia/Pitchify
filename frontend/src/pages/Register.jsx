@@ -22,19 +22,23 @@ function Register() {
   }
 
   return (
-    <form onSubmit={handleRegister}>
-      <h2>Register</h2>
-      <input value={username} onChange={e => setUsername(e.target.value)} placeholder="Username" disabled={success} />
-      <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" disabled={success} />
-      <button type="submit" disabled={success}>Register</button>
-      <button type="button" onClick={() => navigate("/")} disabled={success}>Back</button>
-      <div>{message}</div>
-      {success && (
-        <button type="button" onClick={() => navigate("/login")}>
-          Go to Login
-        </button>
-      )}
-    </form>
+    <div className='regContainer'>
+      <div className='regisBox'>
+        <form onSubmit={handleRegister}>
+        <h2 className='whiteTitleText'>Register</h2>
+        <input className='regForm' value={username} onChange={e => setUsername(e.target.value)} placeholder="Username" disabled={success} />
+        <input className='regForm' type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" disabled={success} />
+        <button className='pinkWhiteBtn' type="submit" style={{ marginRight: "1rem" }} disabled={success}>Register</button>
+        <button className='regblackBtn' type="button" onClick={() => navigate("/")} disabled={success}>Back</button>
+        <div className='msg'>{message}</div>
+        {success && (
+          <button className='regblackBtn' type="button" onClick={() => navigate("/login")}>
+            Go to Login
+          </button>
+        )}
+        </form>
+      </div>
+    </div>
   )
 }
 

@@ -3,7 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "./styles/PitchDeckViewer.css";
+import "./styles/webstyle.css"
 import { nanoid } from "nanoid";
+import { FiX, FiTrash2, FiChevronRight, FiChevronLeft } from "react-icons/fi";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import PptxGenJS from "pptxgenjs";
@@ -287,57 +289,29 @@ const PitchDeckViewer = () => {
   };
 
   return (
-    <div className="main-content">
-      {selectedTextboxId && (() => {
-        const box = dragtextbox[`slide-${currentSlide}`]?.find(b => b.id === selectedTextboxId);
-        if (!box) return null;
-
-        return (
-          <div className="format-toolbar">
-            <label>Text Color:</label>
-            {["#000000", "#FF0000", "#007BFF", "#28A745", "#FF8C00"].map(color => (
-              <button
-                key={color}
-                onClick={() => {
-                  setdragTextbox(prev => {
-                    const updated = prev[`slide-${currentSlide}`].map(b =>
-                      b.id === box.id ? { ...b, color } : b
-                    );
-                    return { ...prev, [`slide-${currentSlide}`]: updated };
-                  });
-                }}
-                style={{
-                  backgroundColor: color,
-                  width: 24,
-                  height: 24,
-                  border: box.color === color ? "2px solid black" : "1px solid gray",
-                  marginRight: 6,
-                  cursor: "pointer"
-                }}
-              />
-            ))}
-
-            <label style={{ marginLeft: 10 }}>Font Size:</label>
-            <input
-              type="number"
-              min="10"
-              max="100"
-              value={box.fontSize || 16}
-              onChange={(e) => {
-                const newSize = parseInt(e.target.value) || 16;
-                setdragTextbox(prev => {
-                  const updated = prev[`slide-${currentSlide}`].map(b =>
-                    b.id === box.id ? { ...b, fontSize: newSize } : b
-                  );
-                  return { ...prev, [`slide-${currentSlide}`]: updated };
-                });
-              }}
-              style={{ width: 60, marginLeft: 4 }}
-            />
-          </div>
-        );
-      })()}
-      <div className="results-container">
+    <div className="results-container">
+      <div className='deckNav'>
+        <FiX 
+          style={{
+            color:'#FF047D',
+            fontSize: 34,
+          }}
+          onClick={() => navigate("/main")}
+        />
+        <h3>Edit Pitch</h3>
+        <FiTrash2
+          style={{
+            color:'#FF047D',
+            fontSize: 34,
+            position: 'absolute',
+            alignSelf:'center',
+            right: 40,
+            top: 25,
+          }}
+          onClick={handleDeleteDeck}
+        />
+      </div>
+      <div className='editDeckContainer'>
         <div className="theme-panel">
           <h3>Themes</h3>
           {Object.entries(themes).map(([key, theme]) => (
@@ -349,19 +323,122 @@ const PitchDeckViewer = () => {
               {theme.name}
             </button>
           ))}
+          <div className="editbtnContainer">
+            <input
+              type="file"
+              accept="image/*"
+              id="image-upload"
+              style={{ display: "none" }}
+              onChange={handleAddImage}
+            />
+            <button
+              style={{
+                color: "black",
+                backgroundColor: " #6fffe9",
+                borderColor:' #6fffe9',
+                height: 40,
+                width: 180,
+                borderRadius: 25,
+                fontSize: 18,
+              }}
+              className="add-image-btn"
+              onClick={() => document.getElementById("image-upload").click()}
+            >
+              Add Image
+            </button>
+            <button
+              className="add-text-btn"
+              onClick={() => {
+                const newBox = {
+                  id: nanoid(),
+                  x: 50,
+                  y: 50,
+                  text: "New Text",
+                  width: 200,
+                  height: 60,
+                  color: "#000000",
+                  fontSize: 16,
+                };
+                const key = `slide-${currentSlide}`;
+                setdragTextbox((prev) => ({
+                  ...prev,
+                  [key]: [...(prev[key] || []), newBox],
+                }));
+              }}
+              style={{
+                color: "black",
+                backgroundColor: " #6fffe9",
+                height: 40,
+                width: 180,
+                borderRadius: 25,
+                fontSize: 18,
+                marginBottom: 10,
+              }}
+            >
+              Add Text Box
+            </button>
+            <button
+              style={{
+                color: "black",
+                backgroundColor: " #6fffe9",
+                borderColor:' #6fffe9',
+                height: 40,
+                width: 180,
+                borderRadius: 25,
+                fontSize: 18,
+                marginBottom: 10,
+              }}
+              onClick={handleSave} disabled={isSaving}>
+              {isSaving ? "Saving..." : "💾 Save"}
+            </button>
+            {slide.presenterNotes && (
+              <button
+                style={{
+                  color: "aliceblue",
+                  backgroundColor: "#FF047D",
+                  height: 40,
+                  width: 200,
+                  padding: 10,
+                  borderRadius: 25,
+                  fontSize: 15,
+                  marginLeft:-10,
+                }}
+                className="toggle-notes-btn"
+                onClick={() => setShowNotes((prev) => !prev)}
+              >
+                {showNotes ? "Hide" : "Show"} Presenter Notes
+              </button>
+            )}
+          </div>
+          <div className="navigation">
+            <button className='slideBtn' onClick={() => setCurrentSlide((p) => Math.max(p - 1, 0))} disabled={currentSlide === 0}>
+              <FiChevronLeft/>
+            </button>
+            <span>
+              Slide {currentSlide + 1} of {allSlides.length}
+            </span>
+            <button className='slideBtn' onClick={() => setCurrentSlide((p) => Math.min(p + 1, allSlides.length - 1))} disabled={currentSlide === allSlides.length - 1}>
+              <FiChevronRight/>
+            </button>
+          </div>
         </div>
-
-        <div id="slides-pdf" ref={canvasRef} className="slide-canvas" 
-        onClick={(e) => {
-          if (e.target === e.currentTarget) {
-            setSelectedTextboxId(null);
-          }
-        }}
-        style={{
-          backgroundColor: themes[selectedTheme].background,
-          color: themes[selectedTheme].textColor,
-          borderColor: themes[selectedTheme].borderColor,
-        }}>
+        <div
+          id="slides-pdf"
+          ref={canvasRef}
+          className="slide-canvas"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setSelectedTextboxId(null);
+            }
+          }}
+          style={{
+            backgroundColor: themes[selectedTheme].background,
+            color: themes[selectedTheme].textColor,
+            borderColor: themes[selectedTheme].borderColor,
+            marginTop: 40,
+            marginLeft:60,
+          }}
+        >
           {dragtextbox[`slide-${currentSlide}`]?.map((box) => (
             <Rnd
               key={box.id}
@@ -389,11 +466,11 @@ const PitchDeckViewer = () => {
                   const updated = prev[`slide-${currentSlide}`].map((b) =>
                     b.id === box.id
                       ? {
-                        ...b,
-                        width: ref.offsetWidth,
-                        height: ref.offsetHeight,
-                        ...position,
-                      }
+                          ...b,
+                          width: ref.offsetWidth,
+                          height: ref.offsetHeight,
+                          ...position,
+                        }
                       : b
                   );
                   return { ...prev, [`slide-${currentSlide}`]: updated };
@@ -462,7 +539,6 @@ const PitchDeckViewer = () => {
               )}
             </Rnd>
           ))}
-
           {slideImages[`slide-${currentSlide}`]?.map((img) => (
             <Rnd
               key={img.id}
@@ -485,11 +561,11 @@ const PitchDeckViewer = () => {
                   const updated = prev[`slide-${currentSlide}`].map((i) =>
                     i.id === img.id
                       ? {
-                        ...i,
-                        width: ref.offsetWidth,
-                        height: ref.offsetHeight,
-                        ...position,
-                      }
+                          ...i,
+                          width: ref.offsetWidth,
+                          height: ref.offsetHeight,
+                          ...position,
+                        }
                       : i
                   );
                   return { ...prev, [`slide-${currentSlide}`]: updated };
@@ -519,9 +595,54 @@ const PitchDeckViewer = () => {
             </Rnd>
           ))}
         </div>
-
-        <div className="navigation">
-
+        {selectedTextboxId && (() => {
+          const box = dragtextbox[`slide-${currentSlide}`]?.find(b => b.id === selectedTextboxId);
+          if (!box) return null;
+          return (
+            <div className="format-toolbar">
+              <label>Text Color:</label>
+              {["#000000", "#FF0000", "#007BFF", "#28A745", "#FF8C00"].map(color => (
+                <button
+                  key={color}
+                  onClick={() => {
+                    setdragTextbox(prev => {
+                      const updated = prev[`slide-${currentSlide}`].map(b =>
+                        b.id === box.id ? { ...b, color } : b
+                      );
+                      return { ...prev, [`slide-${currentSlide}`]: updated };
+                    });
+                  }}
+                  style={{
+                    backgroundColor: color,
+                    width: 24,
+                    height: 24,
+                    border: box.color === color ? "2px solid black" : "1px solid gray",
+                    marginRight: 6,
+                    cursor: "pointer"
+                  }}
+                />
+              ))}
+              <label style={{ marginLeft: 10 }}>Font Size:</label>
+              <input
+                type="number"
+                min="10"
+                max="100"
+                value={box.fontSize || 16}
+                onChange={(e) => {
+                  const newSize = parseInt(e.target.value) || 16;
+                  setdragTextbox(prev => {
+                    const updated = prev[`slide-${currentSlide}`].map(b =>
+                      b.id === box.id ? { ...b, fontSize: newSize } : b
+                    );
+                    return { ...prev, [`slide-${currentSlide}`]: updated };
+                  });
+                }}
+                style={{ width: 60, marginLeft: 4 }}
+              />
+            </div>
+          );
+        })()}
+        <div className="navigation" style={{ marginTop: 20 }}>
           <button onClick={() => setCurrentSlide((p) => Math.max(p - 1, 0))} disabled={currentSlide === 0}>
             Previous
           </button>
@@ -530,52 +651,6 @@ const PitchDeckViewer = () => {
           </span>
           <button onClick={() => setCurrentSlide((p) => Math.min(p + 1, allSlides.length - 1))} disabled={currentSlide === allSlides.length - 1}>
             Next
-          </button>
-          <input
-            type="file"
-            accept="image/*"
-            id="image-upload"
-            style={{ display: "none" }}
-            onChange={(e) => handleAddImage(e)}
-          />
-          <button
-            className="add-image-btn"
-            onClick={() => document.getElementById("image-upload").click()}
-          >
-            🖼️ Add Image
-          </button>
-          <button
-            className="add-text-btn"
-            onClick={() => {
-              const newBox = {
-                id: nanoid(),
-                x: 50,
-                y: 50,
-                text: "New Text",
-                width: 200,
-                height: 60,
-                color: "#000000",
-                fontSize: 16
-              };
-              const key = `slide-${currentSlide}`;
-              setdragTextbox((prev) => ({
-                ...prev,
-                [key]: [...(prev[key] || []), newBox],
-              }));
-            }}
-          >
-            + Add Text Box
-          </button>
-          {slide.presenterNotes && (
-            <button
-              className="toggle-notes-btn"
-              onClick={() => setShowNotes((prev) => !prev)}
-            >
-              {showNotes ? "Hide" : "Show"} Presenter Notes
-            </button>
-          )}
-          <button onClick={handleSave} disabled={isSaving}>
-            {isSaving ? "Saving..." : "💾 Save"}
           </button>
           <button onClick={handleDownloadPDF}>Download as PDF</button>
           <button onClick={handleDownloadPPTX}>Download as PPTX</button>
@@ -589,19 +664,16 @@ const PitchDeckViewer = () => {
               fontWeight: "bold",
             }}
             onClick={handleDeleteSlide}
-            disabled={currentSlide === 0} // Don't allow deleting the title slide
+            disabled={currentSlide === 0}
           >
             🗑️ Delete Slide
           </button>
         </div>
-
         {showNotes && slide.presenterNotes && (
-          <div className="presenter-notes">
+          <div className="presenter-notes" style={{width:1000, marginLeft:130, textAlign:'center'}}>
             <strong>Presenter Notes:</strong> {slide.presenterNotes}
           </div>
         )}
-
-
       </div>
     </div>
   );

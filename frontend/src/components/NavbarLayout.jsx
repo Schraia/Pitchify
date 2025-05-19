@@ -5,11 +5,11 @@ const NavbarLayout = () => {
     <div>
       <nav>
         <h1>
-          AutoPitch
+          Pitchify
         </h1>
-        <div>
-          <Link to="/main">Idea Input</Link>
-          <Link to="/decks">Results</Link>
+        <div className="rightBtns">
+          <Link className='linkers' to="/main">Home</Link>
+          <Link className='linkers' to="/decks">Saved Presentations</Link>
         </div>
       </nav>
 
