@@ -16,11 +16,11 @@ export default function LandingPage() {
     <body className="landContainer">
         <div className="titleContainer">
         <h1 className="titleText">Pitchify</h1>
-        <p style={{fontSize:28}}>
+        <p style={{fontSize:28, fontFamily:'sans-serif'}}>
           Turn your raw idea into a full AI-generated pitch deck <br/> with editable slides, scripts, and themes.
         </p>
         <div className="btnContainer">
-          <button className="pinkBtn" onClick={() => navigate("/login")} style={{ marginRight: "0.5rem" }}>
+          <button className="pinkWhiteBtn" onClick={() => navigate("/login")} style={{ marginRight: "0.5rem" }}>
             Login
           </button>
           <button className="blackBtn" onClick={() => navigate("/register")}>

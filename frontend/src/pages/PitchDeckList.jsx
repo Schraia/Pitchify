@@ -20,20 +20,14 @@ const PitchDeckList = () => {
   }, []);
 
   return (
-    <div style={{ padding: "2rem" }}>
-      <h2>Saved Pitch Decks</h2>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
+    <div className='mainscreens' style={{ padding: "2rem" }}>
+      <h2 className="mainFonts">Saved Pitch Decks</h2>
+      <div className="prevDeckContainer">
         {pitchDecks.map((pitch) => (
           <div
             key={pitch.id}
             onClick={() => navigate(`/pitch-decks/${pitch.id}`)}
-            style={{
-              border: "1px solid #ccc",
-              borderRadius: "8px",
-              padding: "1rem",
-              cursor: "pointer",
-              width: "200px",
-            }}
+            className="previewDeck"
           >
             {/* <h3>{pitch.id || "NO ID"}</h3> */}
             <h3>{pitch.pitchTitle || "Untitled Pitch"}</h3>

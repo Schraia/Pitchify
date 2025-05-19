@@ -26,34 +26,34 @@ function Login() {
   }
 
   return (
-    <body className="landContainer">
-      <div className='regisBox'>
-          <form onSubmit={handleLogin}>
-          <h2 className='whiteTitleText'>Login</h2>
-          <input
-            className='regForm'
-            type="text"
-            placeholder="Username"
-            value={username}
-            onChange={e => setUsername(e.target.value)}
-            required
-          />
-          <input
-            className='regForm'
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-          />
-          <div className='btnContainer'>
-            <button className='pinkBtn' type="submit" style={{ marginRight: "1rem" }}>Login</button>
-            <button className='regblackBtn' type="button" onClick={() => navigate("/")}>Back</button>
+      <div className='regContainer'>
+          <div className='logBox'>
+            <form onSubmit={handleLogin}>
+            <h2 className='whiteTitleText'>Login</h2>
+            <input
+              className='regForm'
+              type="text"
+              placeholder="Username"
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              required
+            />
+            <input
+              className='regForm'
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+            />
+            <div className='btnContainer'>
+              <button className='pinkWhiteBtn' type="submit" style={{ marginRight: "1rem" }}>Login</button>
+              <button className='regblackBtn' type="button" onClick={() => navigate("/")}>Back</button>
+            </div>
+            <div>{message}</div>
+            </form>
           </div>
-          <div>{message}</div>
-          </form>
       </div>
-    </body>
   )
 }
 

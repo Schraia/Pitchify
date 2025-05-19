@@ -3,7 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "./styles/PitchDeckViewer.css";
+import "./styles/webstyle.css"
 import { nanoid } from "nanoid";
+import { FiX, FiTrash2, FiChevronRight, FiChevronLeft } from "react-icons/fi";
 
 const PitchDeckViewer = () => {
   const { id } = useParams();
@@ -188,212 +190,278 @@ const PitchDeckViewer = () => {
 
   return (
     <div className="results-container">
-      <div className="theme-panel">
-        <h3>Themes</h3>
-        {Object.entries(themes).map(([key, theme]) => (
-          <button
-            key={key}
-            className={`theme-btn ${selectedTheme === key ? "active" : ""}`}
-            onClick={() => setSelectedTheme(key)}
-          >
-            {theme.name}
-          </button>
-        ))}
+      <div className='deckNav'>
+        <FiX 
+          style={{
+            color:'#FF047D',
+            fontSize: 34,
+          }}
+          onClick={() => navigate("/main")}
+        />
+        <h3>Edit Pitch</h3>
+        <FiTrash2
+          style={{
+            color:'#FF047D',
+            fontSize: 34,
+            position: 'absolute',
+            alignSelf:'center',
+            right: 40,
+            top: 25,
+          }}
+          onClick={() => navigate("/main")} //change to deleting pitch
+        />
       </div>
-      <div ref={canvasRef} className="slide-canvas" style={{
-        backgroundColor: themes[selectedTheme].background,
-        color: themes[selectedTheme].textColor,
-        borderColor: themes[selectedTheme].borderColor,
-      }}>
-        {dragtextbox[`slide-${currentSlide}`]?.map((box) => (
-          <Rnd
-            key={box.id}
-            default={{
-              x: box.x,
-              y: box.y,
-              width: box.width,
-              height: box.height,
-            }}
-            bounds="parent"
-            className={`rnd-textbox ${selectedTextboxId === box.id ? "selected" : ""}`}
-            onClick={() => setSelectedTextboxId(box.id)}
-            onDragStop={(e, d) => {
-              setSelectedTextboxId(box.id);
-              setdragTextbox((prev) => {
-                const updated = prev[`slide-${currentSlide}`].map((b) =>
-                  b.id === box.id ? { ...b, x: d.x, y: d.y } : b
-                );
-                return { ...prev, [`slide-${currentSlide}`]: updated };
-              });
-            }}
-            onResizeStop={(e, direction, ref, delta, position) => {
-              setSelectedTextboxId(box.id);
-              setdragTextbox((prev) => {
-                const updated = prev[`slide-${currentSlide}`].map((b) =>
-                  b.id === box.id
-                    ? {
-                      ...b,
-                      width: ref.offsetWidth,
-                      height: ref.offsetHeight,
-                      ...position,
-                    }
-                    : b
-                );
-                return { ...prev, [`slide-${currentSlide}`]: updated };
-              });
-            }}
-          >
-            {selectedTextboxId === box.id && (
+      <div className='editDeckContainer'>
+        <div className="theme-panel">
+          <h3>Themes</h3>
+          {Object.entries(themes).map(([key, theme]) => (
+            <button
+              key={key}
+              className={`theme-btn ${selectedTheme === key ? "active" : ""}`}
+              onClick={() => setSelectedTheme(key)}
+            >
+              {theme.name}
+            </button>
+          ))}
+            <div className="editbtnContainer">
+                <input
+                type="file"
+                accept="image/*"
+                id="image-upload"
+                style={{ display: "none" }}
+                onChange={(e) => handleAddImage(e)}
+              />
               <button
-                className="delete-btn"
+                style={{
+                  color: "black",
+                  backgroundColor: " #6fffe9",
+                  borderColor:' #6fffe9',
+                  height: 40,
+                  width: 180,
+                  borderRadius: 25,
+                  fontSize: 18,
+                }}
+                className="add-image-btn"
+                onClick={() => document.getElementById("image-upload").click()}
+              >
+                 Add Image
+              </button>
+              <button
+                className="add-text-btn"
                 onClick={() => {
-                  setdragTextbox((prev) => {
-                    const updated = prev[`slide-${currentSlide}`].filter((b) => b.id !== box.id);
-                    return { ...prev, [`slide-${currentSlide}`]: updated };
-                  });
-                  setSelectedTextboxId(null);
+                  const newBox = {
+                    id: nanoid(),
+                    x: 50,
+                    y: 50,
+                    text: "New Text",
+                    width: 200,
+                    height: 60,
+                  };
+                  const key = `slide-${currentSlide}`;
+                  setdragTextbox((prev) => ({
+                    ...prev,
+                    [key]: [...(prev[key] || []), newBox],
+                  }));
+                }}
+                style={{
+                    color: "black",
+                    backgroundColor: " #6fffe9",
+                    height: 40,
+                    width: 180,
+                    borderRadius: 25,
+                    fontSize: 18,
+                    marginBottom: 10,
                 }}
               >
-                ❌
+                Add Text Box
               </button>
-            )}
-            <textarea
-              className="rnd-textarea"
-              value={box.text}
-              style={{ color: themes[selectedTheme].textColor }}
-              onClick={() => setSelectedTextboxId(box.id)}
-              onChange={(e) => {
-                setdragTextbox((prev) => {
-                  const updated = prev[`slide-${currentSlide}`].map((b) =>
-                    b.id === box.id ? { ...b, text: e.target.value } : b
+
+              <button
+                style={{
+                  color: "black",
+                  backgroundColor: " #6fffe9",
+                  borderColor:' #6fffe9',
+                  height: 40,
+                  width: 180,
+                  borderRadius: 25,
+                  fontSize: 18,
+                  marginBottom: 10,
+                }}
+                onClick={handleSave} disabled={isSaving}>
+                {isSaving ? "Saving..." : "💾 Save"}
+              </button>
+
+              {slide.presenterNotes && (
+                <button
+                  style={{
+                  color: "aliceblue",
+                  backgroundColor: "#FF047D",
+                  height: 40,
+                  width: 200,
+                  padding: 10,
+                  borderRadius: 25,
+                  fontSize: 15,
+                  marginLeft:-10,
+                  }}
+                  className="toggle-notes-btn"
+                  onClick={() => setShowNotes((prev) => !prev)}
+                >
+                  {showNotes ? "Hide" : "Show"} Presenter Notes
+                </button>
+              )}
+            </div>
+            <div className="navigation">
+            <button className='slideBtn' onClick={() => setCurrentSlide((p) => Math.max(p - 1, 0))} disabled={currentSlide === 0}>
+              <FiChevronLeft/>
+            </button>
+            <span>
+              Slide {currentSlide + 1} of {allSlides.length}
+            </span>
+            <button className='slideBtn' onClick={() => setCurrentSlide((p) => Math.min(p + 1, allSlides.length - 1))} disabled={currentSlide === allSlides.length - 1}>
+              <FiChevronRight/>
+            </button>
+         </div>
+          </div>
+          <div ref={canvasRef} className="slide-canvas" style={{
+            backgroundColor: themes[selectedTheme].background,
+            color: themes[selectedTheme].textColor,
+            borderColor: themes[selectedTheme].borderColor,
+            marginTop: 40,
+            marginLeft:60,
+          }}>
+            {dragtextbox[`slide-${currentSlide}`]?.map((box) => (
+              <Rnd
+                key={box.id}
+                default={{
+                  x: box.x,
+                  y: box.y,
+                  width: box.width,
+                  height: box.height,
+                }}
+                bounds="parent"
+                className={`rnd-textbox ${selectedTextboxId === box.id ? "selected" : ""}`}
+                onClick={() => setSelectedTextboxId(box.id)}
+                onDragStop={(e, d) => {
+                  setSelectedTextboxId(box.id);
+                  setdragTextbox((prev) => {
+                    const updated = prev[`slide-${currentSlide}`].map((b) =>
+                      b.id === box.id ? { ...b, x: d.x, y: d.y } : b
+                    );
+                    return { ...prev, [`slide-${currentSlide}`]: updated };
+                  });
+                }}
+                onResizeStop={(e, direction, ref, delta, position) => {
+                  setSelectedTextboxId(box.id);
+                  setdragTextbox((prev) => {
+                    const updated = prev[`slide-${currentSlide}`].map((b) =>
+                      b.id === box.id
+                        ? {
+                          ...b,
+                          width: ref.offsetWidth,
+                          height: ref.offsetHeight,
+                          ...position,
+                        }
+                        : b
+                    );
+                    return { ...prev, [`slide-${currentSlide}`]: updated };
+                  });
+                }}
+              >
+                {selectedTextboxId === box.id && (
+                  <button
+                    className="delete-btn"
+                    onClick={() => {
+                      setdragTextbox((prev) => {
+                        const updated = prev[`slide-${currentSlide}`].filter((b) => b.id !== box.id);
+                        return { ...prev, [`slide-${currentSlide}`]: updated };
+                      });
+                      setSelectedTextboxId(null);
+                    }}
+                  >
+                    ❌
+                  </button>
+                )}
+                <textarea
+                  className="rnd-textarea"
+                  value={box.text}
+                  style={{ color: themes[selectedTheme].textColor }}
+                  onClick={() => setSelectedTextboxId(box.id)}
+                  onChange={(e) => {
+                    setdragTextbox((prev) => {
+                      const updated = prev[`slide-${currentSlide}`].map((b) =>
+                        b.id === box.id ? { ...b, text: e.target.value } : b
+                      );
+                      return { ...prev, [`slide-${currentSlide}`]: updated };
+                    });
+                  }}
+                />
+              </Rnd>
+            ))}
+
+            {slideImages[`slide-${currentSlide}`]?.map((img) => (
+              <Rnd
+              key={img.id}
+              default={{ x: img.x, y: img.y, width: img.width, height: img.height }}
+              bounds="parent"
+              className={`rnd-image ${selectedTextboxId === img.id ? "selected" : ""}`}
+              onClick={() => setSelectedTextboxId(img.id)}
+              onDragStop={(e, d) => {
+                setSelectedTextboxId(img.id);
+                setSlideImages((prev) => {
+                  const updated = prev[`slide-${currentSlide}`].map((i) =>
+                    i.id === img.id ? { ...i, x: d.x, y: d.y } : i
                   );
                   return { ...prev, [`slide-${currentSlide}`]: updated };
                 });
               }}
-            />
-          </Rnd>
-        ))}
-
-        {slideImages[`slide-${currentSlide}`]?.map((img) => (
-          <Rnd
-          key={img.id}
-          default={{ x: img.x, y: img.y, width: img.width, height: img.height }}
-          bounds="parent"
-          className={`rnd-image ${selectedTextboxId === img.id ? "selected" : ""}`}
-          onClick={() => setSelectedTextboxId(img.id)}
-          onDragStop={(e, d) => {
-            setSelectedTextboxId(img.id);
-            setSlideImages((prev) => {
-              const updated = prev[`slide-${currentSlide}`].map((i) =>
-                i.id === img.id ? { ...i, x: d.x, y: d.y } : i
-              );
-              return { ...prev, [`slide-${currentSlide}`]: updated };
-            });
-          }}
-          onResizeStop={(e, direction, ref, delta, position) => {
-            setSelectedTextboxId(img.id);
-            setSlideImages((prev) => {
-              const updated = prev[`slide-${currentSlide}`].map((i) =>
-                i.id === img.id
-                  ? {
-                      ...i,
-                      width: ref.offsetWidth,
-                      height: ref.offsetHeight,
-                      ...position,
-                    }
-                  : i
-              );
-              return { ...prev, [`slide-${currentSlide}`]: updated };
-            });
-          }}
-        >
-          {selectedTextboxId === img.id && (
-            <button
-              className="delete-btn"
-              onClick={() => {
+              onResizeStop={(e, direction, ref, delta, position) => {
+                setSelectedTextboxId(img.id);
                 setSlideImages((prev) => {
-                  const updated = prev[`slide-${currentSlide}`].filter((i) => i.id !== img.id);
+                  const updated = prev[`slide-${currentSlide}`].map((i) =>
+                    i.id === img.id
+                      ? {
+                          ...i,
+                          width: ref.offsetWidth,
+                          height: ref.offsetHeight,
+                          ...position,
+                        }
+                      : i
+                  );
                   return { ...prev, [`slide-${currentSlide}`]: updated };
                 });
-                setSelectedTextboxId(null);
               }}
             >
-              ❌
-            </button>
+              {selectedTextboxId === img.id && (
+                <button
+                  className="delete-btn"
+                  onClick={() => {
+                    setSlideImages((prev) => {
+                      const updated = prev[`slide-${currentSlide}`].filter((i) => i.id !== img.id);
+                      return { ...prev, [`slide-${currentSlide}`]: updated };
+                    });
+                    setSelectedTextboxId(null);
+                  }}
+                >
+                  ❌
+                </button>
+              )}
+              <img
+                src={img.src}
+                alt="slide img"
+                style={{ width: "100%", height: "100%", pointerEvents: "none", userSelect: "none" }}
+                draggable={false}
+              />
+            </Rnd>
+            ))}
+          </div>
+          <div className="navigation">
+            {showNotes && slide.presenterNotes && (
+            <div style={{width:1000, marginLeft:130, textAlign:'center'}} className="presenter-notes">
+              <strong>Presenter Notes:</strong> {slide.presenterNotes}
+            </div>
           )}
-          <img
-            src={img.src}
-            alt="slide img"
-            style={{ width: "100%", height: "100%", pointerEvents: "none", userSelect: "none" }}
-            draggable={false}
-          />
-        </Rnd>
-        ))}
+          </div>
       </div>
-
-      <div className="navigation">
-
-        <button onClick={() => setCurrentSlide((p) => Math.max(p - 1, 0))} disabled={currentSlide === 0}>
-          Previous
-        </button>
-        <span>
-          Slide {currentSlide + 1} of {allSlides.length}
-        </span>
-        <button onClick={() => setCurrentSlide((p) => Math.min(p + 1, allSlides.length - 1))} disabled={currentSlide === allSlides.length - 1}>
-          Next
-        </button>
-        <input
-          type="file"
-          accept="image/*"
-          id="image-upload"
-          style={{ display: "none" }}
-          onChange={(e) => handleAddImage(e)}
-        />
-        <button
-          className="add-image-btn"
-          onClick={() => document.getElementById("image-upload").click()}
-        >
-          🖼️ Add Image
-        </button>
-        <button
-          className="add-text-btn"
-          onClick={() => {
-            const newBox = {
-              id: nanoid(),
-              x: 50,
-              y: 50,
-              text: "New Text",
-              width: 200,
-              height: 60,
-            };
-            const key = `slide-${currentSlide}`;
-            setdragTextbox((prev) => ({
-              ...prev,
-              [key]: [...(prev[key] || []), newBox],
-            }));
-          }}
-        >
-          + Add Text Box
-        </button>
-        {slide.presenterNotes && (
-          <button
-            className="toggle-notes-btn"
-            onClick={() => setShowNotes((prev) => !prev)}
-          >
-            {showNotes ? "Hide" : "Show"} Presenter Notes
-          </button>
-        )}
-        <button onClick={handleSave} disabled={isSaving}>
-          {isSaving ? "Saving..." : "💾 Save"}
-        </button>
-      </div>
-
-      {showNotes && slide.presenterNotes && (
-        <div className="presenter-notes">
-          <strong>Presenter Notes:</strong> {slide.presenterNotes}
-        </div>
-      )}
-
 
     </div>
   );

@@ -1,5 +1,5 @@
 .landContainer{
-    background: radial-gradient(#6fffe9,#eaeaeacf);
+    background: radial-gradient(#6fffe9,aliceblue);
     background-repeat: no-repeat;
     background-attachment: fixed;
 }
@@ -29,7 +29,7 @@
     font-size: x-large;
 }
 
-.pinkBtn{
+.pinkWhiteBtn{
     color: #FF047D;
     background-color: aliceblue;
     height: 60px;
@@ -39,8 +39,51 @@
     font-size: x-large;
 }
 
+.pinkBtn.active {
+    color: aliceblue;
+    background-color: #6fffe9;
+    height: 60px;
+    width: 120px;
+    border-radius: 25px;
+    border-color: solid #6fffe9;
+    font-size: x-large;
+}
+
+.pinkBtn{
+    color: aliceblue;
+    font-size: 24px;
+    background-color: #FF047D;
+    border: 1px #FF047D;
+    border-radius: 50px;
+    width: 25%;
+    height: 64px;
+}
+
+.regContainer{
+    background: radial-gradient(#6fffe9,aliceblue);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    padding-top: 20px;
+    padding-bottom: 110px;
+    margin: -8px;
+}
+
+.logBox{
+    background-color: black;
+    padding: 20px;
+    padding-bottom: 60px;
+    margin-top: 10%;
+    margin-left: 25%;
+    margin-right: 25%;
+    align-self: center;
+    justify-items: center;
+    text-align: center;
+    border-radius: 25px;
+}
+
 .regisBox{
     background-color: black;
+    color: #FF047D;
     padding: 20px;
     padding-bottom: 60px;
     margin-top: 10%;
@@ -55,6 +98,7 @@
 .whiteTitleText{
     color:rgb(215, 223, 231);
     font-size: 48px;
+    font-family: sans-serif;
 }
 
 .regForm{
@@ -76,4 +120,133 @@
     border-radius: 25px;
     font-size: x-large;
     border: 1px solid #FF047D;
+}
+
+.regblackBtn.active{
+    color: aliceblue;
+    background-color: #FF047D;
+    height: 60px;
+    width: 140px;
+    border-radius: 25px;
+    font-size: x-large;
+    border: 1px solid #FF047D;
+}
+
+.msg{
+    padding: 20px;
+}
+
+nav{
+    margin: -10px;
+    background-color: #6fffe9;
+    padding: 20px;
+    padding-left: 40px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 2rem;
+}
+
+nav h1{
+    font-size: 30px;
+}
+
+.linkers{
+    background-color: black;
+    font-family: sans-serif;
+    color:#6fffe9;
+    padding: 15px;
+    border-radius: 25px;
+    margin-right: 15px;
+    align-self: center;
+    text-decoration: none;
+    font-size: 18px;
+}
+
+.rightBtns{
+    position: absolute;
+    align-items: center;
+    right: 40px;
+    top: 55px;
+}
+
+.mainscreens{
+    background: linear-gradient(#6fffe9, #FFFF);
+    margin: -9px;
+    text-align: center;
+    align-items: center;
+    padding-left: 30px;
+    padding-right: 30px;
+}
+
+.mainFonts{
+    font-size: 36px;
+}
+
+textarea{
+    width: 80%;
+    height: 200px;
+    margin-bottom: 1rem;
+    border: 1px solid #FF047D;
+    border-radius: 25px;
+    padding: 15px;
+    resize: none;
+}
+
+.previewDeck{
+    border: 1px solid #FF047D;
+    border-radius: 8px;
+    background-color: aliceblue;
+    padding: 1rem;
+    cursor: pointer;
+    width: 240px;
+    height: 120px;
+    text-align: center;
+    align-content: center;
+}
+
+.prevDeckContainer{
+    padding: 40px;
+    padding-left: 80px;
+    padding-right: 80px;
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 2rem;
+    justify-content: center;
+    align-items: center;
+}
+
+.deckNav{
+    background-color: black;
+    color: #6fffe9;
+    padding-left: 30px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 2rem;
+    font-size: 20px;
+}
+
+.editbtnContainer{
+    align-content: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.slideBtn{
+    border-radius: 100px;
+    background-color: #ff047d;
+    padding: 10px;
+}
+
+h3{
+    font-family:sans-serif;
+}
+
+h1{
+    font-family: sans-serif;
+}
+
+span{
+    font-family: sans-serif;
 }

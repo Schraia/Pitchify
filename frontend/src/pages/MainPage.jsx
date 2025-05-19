@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { generatePitchDeck } from "../lib/gemini";
 import { useNavigate } from "react-router-dom";
+import { FiPower } from "react-icons/fi";
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
 
@@ -37,19 +38,25 @@ export default function MainPage() {
   };
 
   return ( 
-    <div style={{ padding: "2rem" }}>
+    <div className="mainscreens">
+      <div style={{ padding: "2rem" }}>
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
-        <button onClick={handleLogout}>Logout</button>
+        <FiPower
+        style={{fontSize:35,color:"#FF047D"}}
+        onClick={handleLogout}
+        />
       </div>
-      <h1>Enter Your Idea</h1>
+      <h1 style={{fontSize: 48,}}>Enter Your Idea</h1>
       <textarea
         rows={6}
         value={idea}
         onChange={(e) => setIdea(e.target.value)}
         placeholder="Describe your idea here..."
-        style={{ width: "100%", marginBottom: "1rem" }}
       />
-      <button onClick={handleGenerate}>Generate Pitch</button>
+      <div>
+          <button className="pinkBtn" onClick={handleGenerate}>Generate Pitch</button>
+      </div>
+    </div>
     </div>
   );
 }
