@@ -19,6 +19,17 @@ const PitchDeckList = () => {
       .catch(() => setPitchDecks([]));
   }, []);
 
+  const handleDelete = async (id, e) => {
+    e.stopPropagation(); // Prevent card click
+    if (!window.confirm("Are you sure you want to delete this pitch deck?")) return;
+    try {
+      await axios.delete(`http://127.0.0.1:3000/api/pitch-decks/${id}`);
+      setPitchDecks((prev) => prev.filter(deck => deck.id !== id));
+    } catch {
+      alert("Failed to delete pitch deck.");
+    }
+  };
+
   return (
     <div className='mainscreens' style={{ padding: "2rem" }}>
       <h2 className="mainFonts">Saved Pitch Decks</h2>
@@ -28,8 +39,39 @@ const PitchDeckList = () => {
             key={pitch.id}
             onClick={() => navigate(`/pitch-decks/${pitch.id}`)}
             className="previewDeck"
+            style={{
+              border: "1px solid #ccc",
+              borderRadius: "8px",
+              padding: "1rem",
+              cursor: "pointer",
+              width: "200px",
+              position: "relative",
+            }}
+
           >
-            {/* <h3>{pitch.id || "NO ID"}</h3> */}
+            <button
+              style={{
+                position: "absolute",
+                top: 8,
+                right: 8,
+                color: "#b71c1c",
+                background: "transparent",
+                border: "none",
+                borderRadius: "50%",
+                width: "28px",
+                height: "28px",
+                fontWeight: "bold",
+                fontSize: "1.2rem",
+                cursor: "pointer",
+                zIndex: 2,
+                lineHeight: "1",
+                padding: 0,
+              }}
+              onClick={(e) => handleDelete(pitch.id, e)}
+              title="Delete Pitch Deck"
+            >
+              ×
+            </button>
             <h3>{pitch.pitchTitle || "Untitled Pitch"}</h3>
           </div>
         ))}

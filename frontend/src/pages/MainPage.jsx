@@ -8,6 +8,7 @@ import axios from "axios";
 export default function MainPage() {
   const [idea, setIdea] = useState("");
   const navigate = useNavigate();
+  const username = localStorage.getItem('username'); // Get username
 
   const handleLogout = () => {
     localStorage.removeItem('username');
@@ -17,19 +18,17 @@ export default function MainPage() {
   const handleGenerate = async () => {
     if (!idea.trim()) return alert("Please enter your idea");
 
-    const username = localStorage.getItem('username');
     if (!username) return alert("You must be logged in to save a pitch deck.");
 
     try {
       const pitchData = await generatePitchDeck(idea);
-      // Save to backend
+
       const res = await axios.post('http://127.0.0.1:3000/api/pitch-decks', {
         username,
         pitch: pitchData
       });
       const id = res.data.deck_id;
-      // Optionally, you can still save locally for offline use
-      // localStorage.setItem(`pitch_${id}`, JSON.stringify(pitchData));
+
       navigate(`/pitch-decks/${id}`);
     } catch (err) {
       console.error("Error:", err);
@@ -41,6 +40,9 @@ export default function MainPage() {
     <div className="mainscreens">
       <div style={{ padding: "2rem" }}>
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
+        <span style={{ fontWeight: "bold", fontSize: "1.5rem" }}>
+          {username ? `Welcome, ${username}` : ""}
+        </span>
         <FiPower
         style={{fontSize:35,color:"#FF047D"}}
         onClick={handleLogout}
