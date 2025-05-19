@@ -4,6 +4,9 @@ import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "./styles/PitchDeckViewer.css";
 import { nanoid } from "nanoid";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import PptxGenJS from "pptxgenjs";
 
 const PitchDeckViewer = () => {
   const { id } = useParams();
@@ -17,6 +20,7 @@ const PitchDeckViewer = () => {
   const canvasRef = useRef(null);
   const [isSaving, setIsSaving] = useState(false);
   const [slideImages, setSlideImages] = useState({});
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
 
   const themes = {
     default: {
@@ -160,6 +164,14 @@ const PitchDeckViewer = () => {
     }
   }, [deck, currentSlide]);
 
+  useEffect(() => {
+    // Select all textareas in the current slide
+    const textareas = document.querySelectorAll('.rnd-textarea');
+    textareas.forEach(textarea => {
+      textarea.style.height = "auto";
+      textarea.style.height = textarea.scrollHeight + "px";
+    });
+  }, [currentSlide, dragtextbox, selectedTheme]);
 
   if (!deck) return null;
 
@@ -186,6 +198,73 @@ const PitchDeckViewer = () => {
     }, 500);
   };
 
+  const handleDownloadPDF = async () => {
+    if (!deck) return;
+    setIsExportingPDF(true);
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const { pitchTitle, slides = [] } = deck;
+    const allSlides = [{ title: pitchTitle, content: "", presenterNotes: "" }, ...slides];
+
+    const prevSlide = currentSlide;
+
+    let pdf = null;
+
+    for (let i = 0; i < allSlides.length; i++) {
+      setCurrentSlide(i);
+      // Wait for the DOM to update
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      const input = document.getElementById("slides-pdf");
+      // eslint-disable-next-line no-await-in-loop
+      const canvas = await html2canvas(input, { scale: 2 });
+      const imgData = canvas.toDataURL("image/png");
+
+      if (i === 0) {
+        // Create the PDF with the correct size for the first page
+        pdf = new jsPDF({
+          orientation: "landscape",
+          unit: "px",
+          format: [canvas.width, canvas.height],
+        });
+        pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
+      } else {
+        pdf.addPage([canvas.width, canvas.height], "landscape");
+        pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    setCurrentSlide(prevSlide);
+    setIsExportingPDF(false);
+    if (pdf) pdf.save(`${deck.pitchTitle || "pitchdeck"}.pdf`);
+  };
+
+  const handleDownloadPPTX = () => {
+    if (!deck) return;
+    const pptx = new PptxGenJS();
+    const { pitchTitle, slides = [] } = deck;
+    const allSlides = [{ title: pitchTitle, content: "", presenterNotes: "" }, ...slides];
+
+    allSlides.forEach((slide, idx) => {
+      const slideObj = pptx.addSlide();
+      // Add title
+      if (slide.title) {
+        slideObj.addText(slide.title, { x: 0.5, y: 0.3, fontSize: 24, bold: true });
+      }
+      // Add content
+      if (slide.content) {
+        slideObj.addText(slide.content, { x: 0.5, y: 1.2, fontSize: 18, color: "363636", w: 8.5, h: 4 });
+      }
+      // Add presenter notes
+      if (slide.presenterNotes) {
+        slideObj.addNotes(slide.presenterNotes);
+      }
+      // Optionally, add images if you want (see docs)
+    });
+
+    pptx.writeFile({ fileName: `${pitchTitle || "pitchdeck"}.pptx` });
+  };
+
   return (
     <div className="results-container">
       <div className="theme-panel">
@@ -200,7 +279,7 @@ const PitchDeckViewer = () => {
           </button>
         ))}
       </div>
-      <div ref={canvasRef} className="slide-canvas" style={{
+      <div id="slides-pdf" ref={canvasRef} className="slide-canvas" style={{
         backgroundColor: themes[selectedTheme].background,
         color: themes[selectedTheme].textColor,
         borderColor: themes[selectedTheme].borderColor,
@@ -243,7 +322,7 @@ const PitchDeckViewer = () => {
               });
             }}
           >
-            {selectedTextboxId === box.id && (
+            {selectedTextboxId === box.id && !isExportingPDF && (
               <button
                 className="delete-btn"
                 onClick={() => {
@@ -257,20 +336,52 @@ const PitchDeckViewer = () => {
                 ❌
               </button>
             )}
-            <textarea
-              className="rnd-textarea"
-              value={box.text}
-              style={{ color: themes[selectedTheme].textColor }}
-              onClick={() => setSelectedTextboxId(box.id)}
-              onChange={(e) => {
-                setdragTextbox((prev) => {
-                  const updated = prev[`slide-${currentSlide}`].map((b) =>
-                    b.id === box.id ? { ...b, text: e.target.value } : b
-                  );
-                  return { ...prev, [`slide-${currentSlide}`]: updated };
-                });
-              }}
-            />
+            {isExportingPDF ? (
+              <div
+                style={{
+                  color: themes[selectedTheme].textColor,
+                  fontSize: "1.1rem",
+                  width: "100%",
+                  minHeight: "40px",
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-word",
+                  background: "transparent",
+                  border: "none",
+                  padding: 0,
+                }}
+              >
+                {box.text}
+              </div>
+            ) : (
+              <textarea
+                className="rnd-textarea"
+                value={box.text}
+                style={{
+                  color: themes[selectedTheme].textColor,
+                  resize: "none",
+                  overflow: "hidden",
+                  minHeight: "40px",
+                  fontSize: "1.1rem",
+                  width: "100%",
+                  height: "auto"
+                }}
+                onClick={() => setSelectedTextboxId(box.id)}
+                onChange={(e) => {
+                  setdragTextbox((prev) => {
+                    const updated = prev[`slide-${currentSlide}`].map((b) =>
+                      b.id === box.id ? { ...b, text: e.target.value } : b
+                    );
+                    return { ...prev, [`slide-${currentSlide}`]: updated };
+                  });
+                  e.target.style.height = "auto";
+                  e.target.style.height = e.target.scrollHeight + "px";
+                }}
+                onInput={e => {
+                  e.target.style.height = "auto";
+                  e.target.style.height = e.target.scrollHeight + "px";
+                }}
+              />
+            )}
           </Rnd>
         ))}
 
@@ -386,6 +497,8 @@ const PitchDeckViewer = () => {
         <button onClick={handleSave} disabled={isSaving}>
           {isSaving ? "Saving..." : "💾 Save"}
         </button>
+        <button onClick={handleDownloadPDF}>Download as PDF</button>
+        <button onClick={handleDownloadPPTX}>Download as PPTX</button>
       </div>
 
       {showNotes && slide.presenterNotes && (
