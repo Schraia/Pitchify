@@ -254,16 +254,12 @@ const PitchDeckViewer = () => {
 
     for (let i = 0; i < allSlides.length; i++) {
       setCurrentSlide(i);
-      // Wait for the DOM to update
-      // eslint-disable-next-line no-await-in-loop
       await new Promise((resolve) => setTimeout(resolve, 300));
       const input = document.getElementById("slides-pdf");
-      // eslint-disable-next-line no-await-in-loop
       const canvas = await html2canvas(input, { scale: 2 });
       const imgData = canvas.toDataURL("image/png");
 
       if (i === 0) {
-        // Create the PDF with the correct size for the first page
         pdf = new jsPDF({
           orientation: "landscape",
           unit: "px",
@@ -289,19 +285,19 @@ const PitchDeckViewer = () => {
 
     allSlides.forEach((slide, idx) => {
       const slideObj = pptx.addSlide();
-      // Add title
+
       if (slide.title) {
         slideObj.addText(slide.title, { x: 0.5, y: 0.3, fontSize: 24, bold: true });
       }
-      // Add content
+
       if (slide.content) {
         slideObj.addText(slide.content, { x: 0.5, y: 1.2, fontSize: 18, color: "363636", w: 8.5, h: 4 });
       }
-      // Add presenter notes
+
       if (slide.presenterNotes) {
         slideObj.addNotes(slide.presenterNotes);
       }
-      // Optionally, add images if you want (see docs)
+
     });
 
     pptx.writeFile({ fileName: `${pitchTitle || "pitchdeck"}.pptx` });
