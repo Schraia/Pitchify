@@ -104,5 +104,14 @@ def get_pitch_deck(deck_id):
         'slides': json.loads(deck.slides)
     })
 
+@app.route('/api/pitch-decks/<int:deck_id>', methods=['DELETE'])
+def delete_pitch_deck(deck_id):
+    deck = PitchDeck.query.get(deck_id)
+    if not deck:
+        return jsonify({'message': 'Pitch deck not found'}), 404
+    db.session.delete(deck)
+    db.session.commit()
+    return jsonify({'message': 'Pitch deck deleted'})
+
 if __name__ == '__main__':
     app.run(debug=True, port=3000)

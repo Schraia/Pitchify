@@ -173,6 +173,48 @@ const PitchDeckViewer = () => {
     });
   }, [currentSlide, dragtextbox, selectedTheme]);
 
+  // Delete entire pitch deck
+  const handleDeleteDeck = async () => {
+    if (!window.confirm("Are you sure you want to delete this pitch deck? This action cannot be undone.")) return;
+    try {
+      await axios.delete(`http://127.0.0.1:3000/api/pitch-decks/${id}`);
+      // Remove localStorage backup if any
+      localStorage.removeItem(`pitch-deck-${id}`);
+      navigate("/decks");
+    } catch (err) {
+      alert("Failed to delete pitch deck.");
+    }
+  };
+
+  // Delete current slide
+  const handleDeleteSlide = () => {
+    if (allSlides.length <= 1) {
+      alert("You must have at least one slide.");
+      return;
+    }
+    if (!window.confirm("Delete this slide?")) return;
+
+    // Remove from deck.slides (not the title slide)
+    const newSlides = [...slides];
+    const slideIdx = currentSlide - 1; // Because 0 is the title slide
+    if (slideIdx >= 0) {
+      newSlides.splice(slideIdx, 1);
+      setDeck({ ...deck, slides: newSlides });
+      // Remove textboxes and images for this slide
+      const newDragTextbox = { ...dragtextbox };
+      const newSlideImages = { ...slideImages };
+      delete newDragTextbox[`slide-${currentSlide}`];
+      delete newSlideImages[`slide-${currentSlide}`];
+      setdragTextbox(newDragTextbox);
+      setSlideImages(newSlideImages);
+
+      // Move to previous slide if last, else stay at same index
+      setCurrentSlide((prev) =>
+        prev >= allSlides.length - 1 ? prev - 1 : prev
+      );
+    }
+  };
+
   if (!deck) return null;
 
   const { pitchTitle, slides = [] } = deck;
@@ -499,6 +541,20 @@ const PitchDeckViewer = () => {
         </button>
         <button onClick={handleDownloadPDF}>Download as PDF</button>
         <button onClick={handleDownloadPPTX}>Download as PPTX</button>
+        <button
+          style={{
+            background: "#ffe0b2",
+            color: "#bf360c",
+            border: "1px solid #bf360c",
+            borderRadius: "4px",
+            marginRight: "0.5rem",
+            fontWeight: "bold",
+          }}
+          onClick={handleDeleteSlide}
+          disabled={currentSlide === 0} // Don't allow deleting the title slide
+        >
+          🗑️ Delete Slide
+        </button>
       </div>
 
       {showNotes && slide.presenterNotes && (
