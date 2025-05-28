@@ -14,8 +14,8 @@ function Login() {
     try {
       const res = await axios.post('http://127.0.0.1:3000/api/login', { username, password })
       setMessage(res.data.message)
-      localStorage.setItem('username', username) // Save username
-      navigate('/main') // Redirect after login
+      localStorage.setItem('username', username)
+      navigate('/main') 
     } catch (err) {
       if (err.response && err.response.data && err.response.data.message) {
         setMessage(err.response.data.message)
@@ -50,7 +50,7 @@ function Login() {
               <button className='pinkWhiteBtn' type="submit" style={{ marginRight: "1rem" }}>Login</button>
               <button className='regblackBtn' type="button" onClick={() => navigate("/")}>Back</button>
             </div>
-            <div>{message}</div>
+            <div className="error-message">{message}</div>
             </form>
           </div>
       </div>

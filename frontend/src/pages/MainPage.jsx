@@ -39,26 +39,22 @@ export default function MainPage() {
   return ( 
     <div className="mainscreens">
       <div style={{ padding: "2rem" }}>
-      <div style={{ display: "flex", justifyContent: "flex-end" }}>
-        <span style={{ fontWeight: "bold", fontSize: "1.5rem" }}>
-          {username ? `Welcome, ${username}` : ""}
-        </span>
-        <FiPower
-        style={{fontSize:35,color:"#FF047D"}}
-        onClick={handleLogout}
+        <div style={{ marginBottom: "1rem" , textAlign: "left" }}>
+          <span style={{ fontWeight: "bold", fontSize: "1.5rem" }}>
+            {username ? `Welcome, ${username}` : ""}
+          </span>
+        </div>
+        <h1 style={{fontSize: 48}}>Enter Your Idea</h1>
+        <textarea
+          rows={6}
+          value={idea}
+          onChange={(e) => setIdea(e.target.value)}
+          placeholder="Describe your idea here..."
         />
+        <div>
+            <button className="pinkBtn" onClick={handleGenerate}>Generate Pitch</button>
+        </div>
       </div>
-      <h1 style={{fontSize: 48,}}>Enter Your Idea</h1>
-      <textarea
-        rows={6}
-        value={idea}
-        onChange={(e) => setIdea(e.target.value)}
-        placeholder="Describe your idea here..."
-      />
-      <div>
-          <button className="pinkBtn" onClick={handleGenerate}>Generate Pitch</button>
-      </div>
-    </div>
     </div>
   );
 }

@@ -116,28 +116,49 @@ const PitchDeckViewer = () => {
     if (!deck) return;
 
     const currentSlideKey = `slide-${currentSlide}`;
-
     if (!dragtextbox[currentSlideKey]) {
-      const contentBox = allSlides[currentSlide]?.content
-        ? [{
-          id: nanoid(),
-          x: 100,
-          y: 100,
-          text: allSlides[currentSlide].content,
-          width: 300,
-          height: 100,
-        }]
-        : [];
+      const canvas = canvasRef.current;
+      const canvasWidth = canvas ? canvas.offsetWidth : 960;
+      const canvasHeight = canvas ? canvas.offsetHeight : 540;
+
+      // Detect if this is the first slide (cover/title)
+      const isFirstSlide = currentSlide === 0;
+
+      // For the first slide, make the title big and centered both ways
+      let titleWidth = isFirstSlide ? Math.floor(canvasWidth * 0.8) : 600;
+      let titleHeight = isFirstSlide ? 120 : 80;
+      let titleFontSize = isFirstSlide ? 64 : 32;
+
+      // Center horizontally and vertically for first slide, else just horizontally
+      let titleX = (canvasWidth - titleWidth) / 2;
+      let titleY = isFirstSlide
+        ? (canvasHeight - titleHeight) / 2
+        : 50;
 
       const titleBox = allSlides[currentSlide]?.title
         ? [{
-          id: nanoid(),
-          x: 50,
-          y: 30,
-          text: allSlides[currentSlide].title,
-          width: 300,
-          height: 60,
-        }]
+            id: nanoid(),
+            x: titleX,
+            y: titleY,
+            text: allSlides[currentSlide].title,
+            width: titleWidth,
+            height: titleHeight,
+            fontSize: titleFontSize,
+            isTitle: true
+          }]
+        : [];
+
+      const contentBox = allSlides[currentSlide]?.content && !isFirstSlide
+        ? [{
+            id: nanoid(),
+            x: (canvasWidth - 700) / 2,
+            y: 200,
+            text: allSlides[currentSlide].content,
+            width: 700,
+            height: 100,
+            fontSize: 18,
+            isTitle: false
+          }]
         : [];
 
       const newBoxes = [...titleBox, ...contentBox];
@@ -171,7 +192,7 @@ const PitchDeckViewer = () => {
     }
   };
 
-  // Delete current slide
+
   const handleDeleteSlide = () => {
     if (allSlides.length <= 1) {
       alert("You must have at least one slide.");
@@ -198,6 +219,16 @@ const PitchDeckViewer = () => {
         prev >= allSlides.length - 1 ? prev - 1 : prev
       );
     }
+  };
+
+  const handleAddSlide = () => {
+    // Create a new blank slide object
+    const newSlide = { title: "New Slide", content: "", presenterNotes: "" };
+    // Add to slides array (not the title slide)
+    const newSlides = [...slides, newSlide];
+    setDeck({ ...deck, slides: newSlides });
+    // Move to the new slide
+    setCurrentSlide(allSlides.length); // allSlides includes the title slide
   };
 
   if (!deck) return null;
@@ -312,7 +343,7 @@ const PitchDeckViewer = () => {
         />
       </div>
       <div className='editDeckContainer'>
-        <div className="theme-panel">
+        <div className="theme-panel" style={{ display: "flex", flexDirection: "column", height: "100%" }}>
           <h3>Themes</h3>
           {Object.entries(themes).map(([key, theme]) => (
             <button
@@ -378,6 +409,22 @@ const PitchDeckViewer = () => {
               Add Text Box
             </button>
             <button
+              className="add-slide-btn"
+              style={{
+                color: "black",
+                backgroundColor: "#6fffe9",
+                borderColor: "#6fffe9",
+                height: 40,
+                width: 180,
+                borderRadius: 25,
+                fontSize: 18,
+                marginBottom: 10,
+              }}
+              onClick={handleAddSlide}
+            >
+              + Add Slide
+            </button>
+            <button
               style={{
                 color: "black",
                 backgroundColor: " #6fffe9",
@@ -410,7 +457,8 @@ const PitchDeckViewer = () => {
               </button>
             )}
           </div>
-          <div className="navigation">
+          {/* Move navigation to the bottom */}
+          <div className="navigation" style={{ marginTop: "auto", marginBottom: 20 }}>
             <button className='slideBtn' onClick={() => setCurrentSlide((p) => Math.max(p - 1, 0))} disabled={currentSlide === 0}>
               <FiChevronLeft/>
             </button>
@@ -514,6 +562,9 @@ const PitchDeckViewer = () => {
                   style={{
                     color: box.color || themes[selectedTheme].textColor,
                     fontSize: `${box.fontSize || 16}px`,
+                    fontWeight: box.isBold ? "bold" : "normal",
+                    fontStyle: box.isItalic ? "italic" : "normal",
+                    textDecoration: box.isUnderline ? "underline" : "none",
                     resize: "none",
                     overflow: "hidden",
                     minHeight: "40px",
@@ -622,6 +673,22 @@ const PitchDeckViewer = () => {
                   }}
                 />
               ))}
+              {/* Color Picker */}
+              <input
+                type="color"
+                value={box.color || "#000000"}
+                onChange={e => {
+                  const color = e.target.value;
+                  setdragTextbox(prev => {
+                    const updated = prev[`slide-${currentSlide}`].map(b =>
+                      b.id === box.id ? { ...b, color } : b
+                    );
+                    return { ...prev, [`slide-${currentSlide}`]: updated };
+                  });
+                }}
+                style={{ marginLeft: 8, verticalAlign: "middle", width: 32, height: 32, border: "none", background: "none", padding: 0 }}
+                title="Pick custom color"
+              />
               <label style={{ marginLeft: 10 }}>Font Size:</label>
               <input
                 type="number"
@@ -639,6 +706,76 @@ const PitchDeckViewer = () => {
                 }}
                 style={{ width: 60, marginLeft: 4 }}
               />
+              <div style={{ display: "inline-block", marginLeft: 12 }}>
+                <button
+                  type="button"
+                  style={{
+                    fontWeight: "bold",
+                    background: box.isBold ? "#eee" : "white",
+                    border: "1px solid #ccc",
+                    marginRight: 6,
+                    cursor: "pointer",
+                    width: 32,
+                    height: 32,
+                  }}
+                  onClick={() => {
+                    setdragTextbox(prev => {
+                      const updated = prev[`slide-${currentSlide}`].map(b =>
+                        b.id === box.id ? { ...b, isBold: !b.isBold } : b
+                      );
+                      return { ...prev, [`slide-${currentSlide}`]: updated };
+                    });
+                  }}
+                  title="Bold"
+                >
+                  B
+                </button>
+                <button
+                  type="button"
+                  style={{
+                    fontStyle: "italic",
+                    background: box.isItalic ? "#eee" : "white",
+                    border: "1px solid #ccc",
+                    marginRight: 6,
+                    cursor: "pointer",
+                    width: 32,
+                    height: 32,
+                  }}
+                  onClick={() => {
+                    setdragTextbox(prev => {
+                      const updated = prev[`slide-${currentSlide}`].map(b =>
+                        b.id === box.id ? { ...b, isItalic: !b.isItalic } : b
+                      );
+                      return { ...prev, [`slide-${currentSlide}`]: updated };
+                    });
+                  }}
+                  title="Italic"
+                >
+                  I
+                </button>
+                <button
+                  type="button"
+                  style={{
+                    textDecoration: "underline",
+                    background: box.isUnderline ? "#eee" : "white",
+                    border: "1px solid #ccc",
+                    cursor: "pointer",
+                    width: 32,
+                    height: 32,
+                  }}
+                  onClick={() => {
+                    setdragTextbox(prev => {
+                      const updated = prev[`slide-${currentSlide}`].map(b =>
+                        b.id === box.id ? { ...b, isUnderline: !b.isUnderline } : b
+                      );
+                      return { ...prev, [`slide-${currentSlide}`]: updated };
+                    });
+                  }}
+                  title="Underline"
+                >
+                  U
+                </button>
+              </div>
             </div>
           );
         })()}
